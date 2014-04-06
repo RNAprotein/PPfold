@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<project name="PPfold" default="dist" basedir=".">
+	
+	<!-- ### Basic Properties (Update these to suit your environment) ### //-->
+
+	<!-- The name of your plugin //-->
+	<property name="jarName" value="PPfold3.0.jar" />
+	<property name="mainclass" value="com.ppfold.main.PPfold" />
+
+	<!-- The path to your clcdeveloperkit //-->
+
+	<property name="libDir" value="./lib" />
+	<property name="resDir" value="./res" />
+	<property name="execDir" value="./exec" />
+	<property name="fileDir" value="./file" />
+	<property name="buildDir" value="./build" />
+	<property name="packageDir" value="dist" />
+	<property name="packageLibDir" value="${packageDir}/lib" />
+	<property name="packageFileDir" value="${packageDir}/file" />
+
+	<path id="srcPath">
+		<pathelement path="src" />
+	</path>
+
+
+	<!-- ### Prepare ### //-->
+	<target name="prepare">
+		<mkdir dir="${buildDir}" />
+		<mkdir dir="${packageDir}" />
+		<mkdir dir="${packageFileDir}" />
+		<mkdir dir="${packageLibDir}" />
+		<mkdir dir="${resDir}" />
+		<mkdir dir="${libDir}" />
+
+		<copy todir="${packageLibDir}">
+			<fileset dir="${libDir}"/>
+		</copy>
+
+		<copy todir="${packageFileDir}">
+			<fileset dir="${fileDir}" />
+		</copy>
+	</target>
+
+	<!-- ### Compile ### //-->
+	<target name="compile" depends="prepare">
+		<path id="buildClasspath">
+			<fileset dir="${packageLibDir}">
+				<include name="*.jar" />
+			</fileset>
+		</path>
+		<javac destdir="${buildDir}" debug="on" deprecation="on" source="1.5" target="1.5">
+			<src>
+				<path refid="srcPath" />
+			</src>
+			<classpath>
+				<path refid="buildClasspath" />
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="manifest_classpath">
+		<pathconvert property="manifest_classpath" pathsep=" ">
+			<path refid="buildClasspath">
+			</path>
+			<mapper>
+				<chainedmapper>
+					<mapper type="flatten" />
+					<mapper type="glob" from="*" to="lib/*" />
+				</chainedmapper>
+			</mapper>
+		</pathconvert>
+	</target>
+
+	<!-- ### Distribution ### //-->
+	<target name="dist" depends="compile, manifest_classpath">
+		<echo message="${manifest_classpath}" />
+		<jar destfile="${packageDir}/${jarName}">
+			<fileset dir="${buildDir}">
+			</fileset>
+			<fileset dir="${resDir}">
+			</fileset>
+			<manifest>
+				<attribute name="Main-Class" value="${mainclass}" />
+				<attribute name="Class-Path" value="${manifest_classpath}" />
+			</manifest>
+		</jar>
+	</target>
+
+	<!-- ### Clean ### //-->
+	<target name="clean">
+		<delete dir="${buildDir}">
+		</delete>
+		<delete dir="${packageDir}">
+		</delete>
+		<delete dir="${distDir}">
+		</delete>
+	</target>
+</project>
+
