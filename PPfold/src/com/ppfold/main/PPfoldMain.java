@@ -206,7 +206,7 @@ public class PPfoldMain implements Runnable {
     			progress = NullProgress.INSTANCE;
     		}
     		progress.setCurrentActivity("Preparing folding...");
-    		fold(progress, align.getSequences(), align.getNames(), tree, param, extradata);
+    		fold(progress, align.getSequences(), align.getNames(), tree, param, extradata);		//align.* get the sequence and header name of a fasta alignment
     
             System.out.println();
             System.out.println("FINISHED ");
@@ -268,7 +268,7 @@ public class PPfoldMain implements Runnable {
 		List<char[]> fullcolumns = new ArrayList<char[]>();
 		//this will contain the FULL alignment (for outputting later) 
 
-		int nrseq = sequences.size();
+		int nrseq = sequences.size();			//syang: # of species, nr stands for number
 
 		char[] thiscolumn = new char[nrseq]; 
 		char[] finalstructure = new char[sequences.get(0).length()];
@@ -302,7 +302,7 @@ public class PPfoldMain implements Runnable {
 					}
 				}
 
-				if((float)gapscounter/nrseq >= 0.25 && isoktoremove){
+				if((float)gapscounter/nrseq >= 0.25 && isoktoremove){		//syang: gaps column with no extraData will be assigned as '.' and left out
 					finalstructure[i] = '.'; 
 					finalreliability[i] = 0;
 					leftoutcolumns.add(i);
@@ -366,7 +366,7 @@ public class PPfoldMain implements Runnable {
 		}
 
 		Progress activity = progress.getChildProgress(0.05);
-		if(tree==null){
+		if(tree==null){				//syang: build NJ tree
 			try {				
 			//System.out.println("Creating tree by neighbour joining... ");
 				tree = NeighbourJoining.generateTreeNJ(activity, sequences,columns_int, names, param);
@@ -394,10 +394,10 @@ public class PPfoldMain implements Runnable {
 		System.out.println("Checking finished");
 		
 		Progress activity2 = progress.getChildProgress(0.05);
-		if(optimizetree){
+		if(optimizetree){		//syang: optimize tree branch lengths
 			//System.out.println("Optimizing branch lengths...");
 			try {
-				tree.optimizeBranchLengths(activity2, columns_int,fullcolumns,names,param, iterlimit);
+				tree.optimizeBranchLengths(activity2, columns_int,fullcolumns,names,param, iterlimit);		//syang: iterlimit==10
 			} catch (InterruptedException e) {
 				System.out.println("Process interrupted by user! Stopping...");
 				executor.shutDown();
@@ -417,7 +417,7 @@ public class PPfoldMain implements Runnable {
 		Progress activity3 = progress.getChildProgress(0.88);
 		ResultBundle result = null;
 		try{
-			result = FoldingProject.fold(activity3, phylodivisions,scfgdivisions, tree, 
+			result = FoldingProject.fold(activity3, phylodivisions,scfgdivisions, tree, 		//syang: the folding job
 				columns, names, param, executor, verbose,1,extradata,false,entropycalc);
 		}
 		catch(InterruptedException e){

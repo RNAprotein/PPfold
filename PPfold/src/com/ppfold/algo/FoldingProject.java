@@ -129,7 +129,7 @@ public class FoldingProject {
 			System.out.println("Number of auxiliary data items: " + extradata_list.size());
 			ArrayList<ForcedConstraints> fcList = new ArrayList<ForcedConstraints>();
 			for(ExtraData data:extradata_list){
-				if(data instanceof ForcedConstraints){
+				if(data instanceof ForcedConstraints){			//syang: pick ForcedConstraints out from ExtraData?
 					//If forcing constraints, collect them into one and remove from the list
 					fcList.add((ForcedConstraints) data);
 				}
@@ -219,7 +219,7 @@ public class FoldingProject {
 			double[][] prob, double[][] probmatrix, double[][] probmatrix2,
 			AsynchronousJobExecutor executor, final boolean verbose, final boolean diffbp, final boolean entropycalc)
 			throws InterruptedException {
-		PointRes tmp = new PointRes(0, 0);
+		PointRes tmp = new PointRes(0, 0);		//syang: first 0 is fraction, second 0 is exponent
 		final long starttime = System.nanoTime();
 
 		if (verbose) {

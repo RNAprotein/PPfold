@@ -1,0 +1,18 @@
+- PPfold.main calls thread.start(), where thread is a PPfoldMain object
+
+
+- Parameters.java: 
+Reads and stores the input parameters (scfg, paired and un-paired prob, etc) at res/matrices.in
+
+
+- PPfoldMain.fold() is in charge of folding
+
+
+- ForcedConstraints.java:
+read in constraints like:
+To force a region of length k, starting with nucleotide i, to be unpaired:
+P i 0 k 
+data[i][j]==2 and data[i][i]==3 correspond to single-stranded constraints
+
+
+- ForcedConstraints is one of the ExtraData list
