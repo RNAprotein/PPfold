@@ -80,7 +80,7 @@ public class ResMatrix implements Serializable {
 	}
 
 	public void replaceWithMaxSum(ResMatrix E1, ResMatrix E2, PointRes tmp,
-			PointRes tmp2) {
+			PointRes tmp2) {		//syang: each vector of E1 + entire E2, then the result compares to this, maintain the max
 		for (int s = 0; s < this.n; s++) {
 			for (int t = 0; t < this.n; t++) {
 				for (int ss = 0; ss < this.n; ss++) {
@@ -122,7 +122,7 @@ public class ResMatrix implements Serializable {
 	}
 
 	public void incrementWithLS(ResMatrix L, ResMatrix S, double prob,
-			PointRes tmp, PointRes tmp2) {
+			PointRes tmp, PointRes tmp2) {		//syang:
 		for (int s = 0; s < this.n; s++) {
 			for (int t = 0; t < this.n; t++) {
 				for (int ss = 0; ss < this.n; ss++) {

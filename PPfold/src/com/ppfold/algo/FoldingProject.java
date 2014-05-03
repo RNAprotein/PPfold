@@ -400,6 +400,15 @@ public class FoldingProject {
 				+ master.top.getInsideMatrixS().getProb(distance - 1,
 						length - 1 - master.top.pos[1]));
 		}
+		
+		
+		//syang: directly output the top inside value
+		System.out.println("For syang, Top inside: "
+				+ master.top.getInsideMatrixS().getProb(distance - 1,
+						length - 1 - master.top.pos[1]));
+		
+		
+		
 		//long insidetime = System.nanoTime();
 		//System.out.print(nrdivisions + " - ");
 		//System.out.println("TOTAL TIME ELAPSED IN INSIDE PART (ALL): "
@@ -1083,6 +1092,81 @@ public class FoldingProject {
 					+ ((Runtime.getRuntime().totalMemory() - Runtime
 							.getRuntime().freeMemory()) / 1048576) + " MB ");
 		}
+		
+		
+
+		
+/*		
+		//syang11: START variant inside algorithm
+		if (verbose) {
+			System.out.println("Doing syang's variant inside algorithm...");
+		}
+
+			act.setCurrentActivity("Applying grammar: syang's variant inside algorithm");
+
+		// calculate expectation values
+		master.CreateExpectationJobChannel();
+		final AtomicInteger finishedexpectationjobscount = new AtomicInteger(0); // counts
+		// how many exp jobs are done
+		Progress expectAct = act.getChildProgress(0.11);
+		//final long expgridstarttime = System.nanoTime();
+		while (master.unProcessedExpectationSectors()) {
+			if(act.shouldStop()){
+				executor.shutDown();
+			}
+			act.checkStop();
+			final Progress jobAct = expectAct.getChildProgress(1.0 / nrsectors);
+			CYKJob cYKJob = master.takeNextExpectationJob(); // This call will
+			// block until a job is ready 
+			// System.out.println(cYKJob.sectorid + " " + " 4 " +
+			// (System.nanoTime()-starttime));
+			final int sectorNumber = cYKJob.getSectorid();
+			executor.startExecution(cYKJob, new JobListener() {		//syang: implement JobListener interface?
+				public void jobFinished(JobResults result) {
+					master.setExpectationResult(sectorNumber, result);
+					jobAct.setProgress(1.0);
+					// System.out.println(sectorNumber + " " + " 5 " +
+					// (System.nanoTime()-starttime));
+					finishedexpectationjobscount.incrementAndGet();
+				}
+
+				public void jobFinished(double[][] result) {
+				}// doesn't happen here
+
+				public void jobFinished(List<ResultBundle> result) {
+				} // doesn't happen here
+			});
+		}
+		// wait for last job to finish
+		while (finishedexpectationjobscount.get() < nrsectors) {
+			Thread.sleep(100);
+			if(act.shouldStop()){
+				executor.shutDown();
+			}
+			act.checkStop();
+		}
+		expectAct.setProgress(1.0);
+
+		if (verbose) {
+			System.out.println("Done. (time: "
+					+ (System.nanoTime() - starttime) * 1e-9 + " s)");
+			System.out.println("Memory allocated: "
+					+ (Runtime.getRuntime().totalMemory() / 1048576) + " MB");
+			System.out.println("Memory used: "
+					+ ((Runtime.getRuntime().totalMemory() - Runtime
+							.getRuntime().freeMemory()) / 1048576) + " MB ");
+		}
+		if(verbose){
+		System.out.println("Top expectation: "
+				+ master.top.getExpectationMatrix().getProb(distance - 1,		//syang: distance is like the sub-window size of the probmatrix length for each job
+						length - 1 - master.top.pos[1]));
+		}
+		//syang11: END variant inside algorithm
+*/		
+		
+		
+		
+		
 
 		if (verbose) {
 			System.out.println("Finalizing results... ");

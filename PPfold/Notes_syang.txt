@@ -3,6 +3,7 @@
 
 - Parameters.java: 
 Reads and stores the input parameters (scfg, paired and un-paired prob, etc) at res/matrices.in
+The scfg rule probs are in param and prob[][] in most of the scripts
 
 
 - PPfoldMain.fold() is in charge of folding
@@ -16,3 +17,53 @@ data[i][j]==2 and data[i][i]==3 correspond to single-stranded constraints
 
 
 - ForcedConstraints is one of the ExtraData list
+
+
+- Inside.java
+build the three n*n matrices L, S, F for all the grammers
+bifurcation happens when S->LS and F->LS
+
+
+OutofBoundary: 
+---------------
+1.
+ PPfold version 3.0
+Platform: Linux, version 3.7.10-1.28-default
+JVM: Oracle Corporation, JRE version 1.7.0_25
+
+java.lang.ArrayIndexOutOfBoundsException: 187:
+com.ppfold.algo.extradata.ForcedConstraints.combinedForcedConstraints(ForcedConstraints.java:143)
+com.ppfold.algo.FoldingProject.fold(FoldingProject.java:143)
+com.ppfold.main.PPfoldMain.fold(PPfoldMain.java:420)
+com.ppfold.main.PPfoldMain.run(PPfoldMain.java:209)
+java.lang.Thread.run(Thread.java:724)
+
+
+ 
+: 
+---------------
+1. 
+ PPfold version 3.0
+Platform: Linux, version 3.7.10-1.28-default
+JVM: Oracle Corporation, JRE version 1.7.0_25
+
+java.lang.ArrayIndexOutOfBoundsException: 61:
+com.ppfold.algo.extradata.ForcedConstraints.removeColumns(ForcedConstraints.java:421)
+com.ppfold.main.PPfoldMain.fold(PPfoldMain.java:355)
+com.ppfold.main.PPfoldMain.run(PPfoldMain.java:209)
+java.lang.Thread.run(Thread.java:724)
+
+
+
+
+PPfold version 3.0
+Platform: Linux, version 3.7.10-1.28-default
+JVM: Oracle Corporation, JRE version 1.7.0_25
+
+java.lang.ArrayIndexOutOfBoundsException: 73:
+com.ppfold.algo.extradata.ForcedConstraints.removeColumns(ForcedConstraints.java:416)
+com.ppfold.main.PPfoldMain.fold(PPfoldMain.java:355)
+com.ppfold.main.PPfoldMain.run(PPfoldMain.java:209)
+java.lang.Thread.run(Thread.java:724)
+
+ 

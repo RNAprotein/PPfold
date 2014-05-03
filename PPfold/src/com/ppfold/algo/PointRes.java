@@ -122,7 +122,7 @@ public class PointRes implements Serializable {
 		return this;
 	}
 
-	public PointRes add(PointRes point) {
+	public PointRes add(PointRes point) {			//syang: the "+" operation for exponents
 		int diff = this.exponent - point.exponent;
 		if ((diff < -126 && point.fraction != 0) || this.fraction == 0) {
 			this.exponent = point.exponent;

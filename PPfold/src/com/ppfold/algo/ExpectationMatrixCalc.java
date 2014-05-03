@@ -27,14 +27,14 @@ public class ExpectationMatrixCalc {
 		// job
 
 		// X is container for data we want to find -- all results for the job
-		JobResults X = new JobResults(job.getN());
+		JobResults X = new JobResults(job.getN());		//syang: X contains L, S, F three ResMatrix
 		ResMatrix E = X.S;
 		ResMatrix Bp = job.insideresultsS; // own matrix basepairs
 
-		ResMatrix partialE = new ResMatrix(dim);
+		ResMatrix partialE = new ResMatrix(dim);		//initial value: all zero
 
 		// first create matrix multiplication results
-		if (job.getBelow().size() != 0) {
+		if (job.getBelow().size() != 0) {			//syang: the rule for DP, here, it is the rule for find the max E_i,j value
 			for (int c = 1; c <= job.getBelow().size() - 1; c++) {
 				// below: E matrix of that sector
 				// diagbelow: E matrix of that sector
