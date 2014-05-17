@@ -20,6 +20,14 @@ public class ResMatrix implements Serializable {
 	// dimensions of this resmatrix
 	private int n;
 
+	
+	//syang: for test purpose, getter function for n
+	public int get_n(){
+		return n;
+	}
+	
+	
+	
 	// Constructor
 	public ResMatrix(int n) {
 		fraction = new float[n][n];

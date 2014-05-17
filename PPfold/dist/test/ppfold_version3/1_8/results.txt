@@ -1,0 +1,10 @@
+PPfold version 3.0
+Platform: Linux, version 3.7.10-1.28-default
+JVM: Oracle Corporation, JRE version 1.7.0_51
+
+java.lang.ArrayIndexOutOfBoundsException: 1:
+com.ppfold.algo.extradata.ForcedConstraints.removeColumns(ForcedConstraints.java:421)
+com.ppfold.main.PPfoldMain.fold(PPfoldMain.java:360)
+com.ppfold.main.PPfoldMain.run(PPfoldMain.java:215)
+java.lang.Thread.run(Thread.java:744)
+

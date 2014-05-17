@@ -410,7 +410,7 @@ public class ForcedConstraints implements ExtraData {
 		int cnt = 0; 
 		while(iter.hasNext()){
 			int col = iter.next();
-			for(int i = current; i<=col; i++){
+			for(int i = current; i<=Math.min(col, maxpos); i++){ //syang: debugged version from Zsuzsanna's PPfoldV3.1.1; the old bug codes is: for(int i = current; i<=col; i++){
 				if(i == col){
 					cnt ++; //one more column removed
 					remColCnt[i] = -1; //Remove this column 

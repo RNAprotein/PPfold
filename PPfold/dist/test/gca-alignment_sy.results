@@ -1,0 +1,85 @@
+P 55 0 1: 1.4956554 x 2^-295
+
+Attempting to read and parse files...
+/ubc/cs/home/s/syang11/Desktop/syang11/git/PPfold/PPfold/dist/test/gca-alignment_sy.fasta
+All files read.
+Results will be written to /ubc/cs/home/s/syang11/Desktop/syang11/git/PPfold/PPfold/dist/test
+Starting algorithm...
+Total number of columns predicting structure on: 63
+Number of sequences: 4
+Generating tree by neighbour-joining...
+TOTAL TIME ELAPSED IN NEIGHBOUR-JOINING: 0 seconds 
+Checking data...
+Checking finished
+Optimizing branch lengths...
+Start log-probability of tree: -251.45869457493015
+All branch lengths converged after 9 iterations.
+End log-probability of tree: -251.4131487461729
+TOTAL TIME ELAPSED IN MLE: 0 seconds 
+Written file /ubc/cs/home/s/syang11/Desktop/syang11/git/PPfold/PPfold/dist/test/gca-alignment_sy.newick
+Id of node: 0,	 name: gca_bovine,	 distance from parent = 0.1591,	 has 0 children
+Id of node: 1,	 name: gca_chicken,	 distance from parent = 0.3996,	 has 0 children
+Id of node: 2,	 name: gca_mouse,	 distance from parent = 0.0765,	 has 0 children
+Id of node: 3,	 name: gca_rat,	 distance from parent = 0.0465,	 has 0 children
+Id of node: 35,	 name: N/A,	 distance from parent = 0.3082,	 has 2 children	 with ids: 2, 3
+Id of node: 34,	 name: N/A,	 distance from parent = 0.0000,	 has 3 children	 with ids: 0, 1, 35
+TOTAL TIME ELAPSED IN PHYLOGENETIC PART: 0 seconds 
+Number of auxiliary data items: 1
+Processing 1 hard constraint datasets
+Processing all auxiliary data
+Folding...
+For syang, Top inside: 1.4956554 x 2^-295
+ENTROPY: 1.5192986 x 2^2 = 6.0771942138671875
+(which is 7.73% of the maximum entropy, 78.62)
+TOTAL TIME ELAPSED IN SCFG PART: 0 seconds 
+Structure prediction complete. Transforming to include left-out columns (total 5)...
+Written file /ubc/cs/home/s/syang11/Desktop/syang11/git/PPfold/PPfold/dist/test/gca-alignment_sy.ct
+
+FINISHED 
+
+
+
+
+
+
+
+
+P 55 0 10: 1.6761183 x 2^-328
+
+Attempting to read and parse files...
+/ubc/cs/home/s/syang11/Desktop/syang11/git/PPfold/PPfold/dist/test/gca-alignment_sy.fasta
+All files read.
+Results will be written to /ubc/cs/home/s/syang11/Desktop/syang11/git/PPfold/PPfold/dist/test
+Starting algorithm...
+Total number of columns predicting structure on: 63
+Number of sequences: 4
+Generating tree by neighbour-joining...
+TOTAL TIME ELAPSED IN NEIGHBOUR-JOINING: 0 seconds 
+Checking data...
+Checking finished
+Optimizing branch lengths...
+Start log-probability of tree: -251.45869457493015
+All branch lengths converged after 9 iterations.
+End log-probability of tree: -251.4131487461729
+TOTAL TIME ELAPSED IN MLE: 0 seconds 
+Written file /ubc/cs/home/s/syang11/Desktop/syang11/git/PPfold/PPfold/dist/test/gca-alignment_sy.newick
+Id of node: 0,	 name: gca_bovine,	 distance from parent = 0.1591,	 has 0 children
+Id of node: 1,	 name: gca_chicken,	 distance from parent = 0.3996,	 has 0 children
+Id of node: 2,	 name: gca_mouse,	 distance from parent = 0.0765,	 has 0 children
+Id of node: 3,	 name: gca_rat,	 distance from parent = 0.0465,	 has 0 children
+Id of node: 41,	 name: N/A,	 distance from parent = 0.3082,	 has 2 children	 with ids: 2, 3
+Id of node: 40,	 name: N/A,	 distance from parent = 0.0000,	 has 3 children	 with ids: 0, 1, 41
+TOTAL TIME ELAPSED IN PHYLOGENETIC PART: 0 seconds 
+Number of auxiliary data items: 1
+Processing 1 hard constraint datasets
+Processing all auxiliary data
+Folding...
+For syang, Top inside: 1.6761183 x 2^-328
+ENTROPY: 1.3638725 x 2^3 = 10.910980224609375
+(which is 13.88% of the maximum entropy, 78.62)
+TOTAL TIME ELAPSED IN SCFG PART: 0 seconds 
+Structure prediction complete. Transforming to include left-out columns (total 5)...
+Written file /ubc/cs/home/s/syang11/Desktop/syang11/git/PPfold/PPfold/dist/test/gca-alignment_sy.ct
+
+FINISHED 
+

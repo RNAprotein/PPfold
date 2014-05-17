@@ -407,7 +407,18 @@ public class FoldingProject {
 				+ master.top.getInsideMatrixS().getProb(distance - 1,
 						length - 1 - master.top.pos[1]));
 		
-		
+		//syang: test
+		System.out.println("For syang, distance: "
+				+ distance + "; length:" + length + "; master.top.pos[1]:" 
+				+ master.top.pos[1] + "; n:" 
+				+ master.top.getInsideMatrixS().get_n() + "; dim:" 
+				+ master.top.dim);
+		for(int i=0; i< master.top.dim; i++){
+			for (int j=0; j< master.top.dim; j++){
+				System.out.println("For syang, " + i + "," +j + ": "
+						+ master.top.getInsideMatrixS().getProb(i,j));
+			}
+		}
 		
 		//long insidetime = System.nanoTime();
 		//System.out.print(nrdivisions + " - ");
@@ -515,6 +526,33 @@ public class FoldingProject {
 			act.checkStop();
 		}
 		outsideAct.setProgress(1.0);
+		
+		
+		//syang: directly output the top outside value
+/*				System.out.println("For syang, Bottom outside: "
+						+ master.bottom.getOutsideMatrixL().getProb(
+								length - 1 - master.bottom.pos[1],distance - 1));
+*/				
+		//syang: test
+//		System.out.println("For syang, distance: "
+//				+ distance + "; length:" + length + "; master.top.pos[1]:" 
+//				+ master.top.pos[1] + "; n:" 
+//				+ master.top.getInsideMatrixS().get_n() + "; dim:" 
+//				+ master.top.dim);
+/*		for(int i=0; i< master.top.dim; i++){
+			for (int j=0; j< master.top.dim; j++){
+				System.out.println("For syang, " + i + "," +j + ": "
+						+ master.top.getOutsideMatrixL().getProb(i,j));
+			}
+		}*/
+		for(int i=0; i< master.bottom.dim; i++){
+			for (int j=0; j< master.bottom.dim; j++){
+				System.out.println("For syang, " + i + "," +j + ": "
+						+ master.bottom.getOutsideMatrixL().getProb(i,j));
+			}
+		}		
+		
+		
 
 		if (verbose) {
 			System.out.println("Done. (time: "
@@ -959,6 +997,22 @@ public class FoldingProject {
 				+ master.top.getExpectationMatrix().getProb(distance - 1,
 						length - 1 - master.top.pos[1]));
 		}
+		
+		
+		//syang: directly output the top inside value
+		System.out.println("For syang, Top expectation: "
+				+ master.top.getExpectationMatrix().getProb(distance - 1,
+						length - 1 - master.top.pos[1]));
+		
+		//syang: test
+		for(int i=0; i< master.top.dim; i++){
+			for (int j=0; j< master.top.dim; j++){
+				System.out.println("For syang, " + i + "," +j + ": "
+						+ master.top.getExpectationMatrix().getProb(i,j));
+			}
+		}
+		
+		
 		// System.out.print(nrdivisions + " - ");
 		//System.out.println("TOTAL TIME ELAPSED IN EXPECTATION PART: "
 		//		+ (System.nanoTime() - outsidetime) * 1e-9 + " seconds ");

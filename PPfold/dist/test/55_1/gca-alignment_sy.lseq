@@ -1,0 +1,13 @@
+consensus pairingmask (((((((...((......))..(((((((...)))))))....((((.........))))))))))).
+
+gca_bovine agcccuguggugaauuuacacguugaauugcaaauucagagaagcagcuucaauucugccggggcuu
+pairingmask (((((((...((......))..(((((((...)))))))....((((........))))))))))).
+
+gca_chicken gacucuguagugaaguucauaaugaguugcaaacucguugauguacacuaaagugugccggggucu
+pairingmask (((((((...((.....))..(((((((...)))))))....((((........))))))))))).
+
+gca_mouse ggucuuaaggugauauucaugucgaauugcaaauucgaagguguagagaaaucucuacuaagacuu
+pairingmask (((((((...((.....))..(((((((...)))))))....((((........))))))))))).
+
+gca_rat agccuuaaggugauuaucaugucgaauugcaaauucgaagguguagagaaucuucuacuaaggcuu
+pairingmask (((((((...((.....))..(((((((...)))))))....((((........))))))))))).
