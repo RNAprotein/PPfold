@@ -1,3 +1,11 @@
+- FoldingProject.java
+calcSCFG(), 1)do inside first, 2)then outside, 3)then setting s and d prob, 4)then expectation.
+
+if do 4) before 3), then get a different expectation E1. 
+if do 1) again after 3), then get a different inside (the one I need, I1).
+if do 2) again after 3), then get a different outside O1, and a different expectation in 4) but same value as E1! 
+
+
 - PPfold.main calls thread.start(), where thread is a PPfoldMain object
 
 

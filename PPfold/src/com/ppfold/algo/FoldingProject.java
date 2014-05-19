@@ -407,7 +407,7 @@ public class FoldingProject {
 				+ master.top.getInsideMatrixS().getProb(distance - 1,
 						length - 1 - master.top.pos[1]));
 		
-		//syang: test
+/*		//syang: test
 		System.out.println("For syang, distance: "
 				+ distance + "; length:" + length + "; master.top.pos[1]:" 
 				+ master.top.pos[1] + "; n:" 
@@ -419,6 +419,7 @@ public class FoldingProject {
 						+ master.top.getInsideMatrixS().getProb(i,j));
 			}
 		}
+*/		
 		
 		//long insidetime = System.nanoTime();
 		//System.out.print(nrdivisions + " - ");
@@ -529,10 +530,13 @@ public class FoldingProject {
 		
 		
 		//syang: directly output the top outside value
+		System.out.println("For syang, Bottom outside: "
+				+ master.bottom.getOutsideMatrixL().getProb(
+						1,1));
 /*				System.out.println("For syang, Bottom outside: "
 						+ master.bottom.getOutsideMatrixL().getProb(
 								length - 1 - master.bottom.pos[1],distance - 1));
-*/				
+/*				
 		//syang: test
 //		System.out.println("For syang, distance: "
 //				+ distance + "; length:" + length + "; master.top.pos[1]:" 
@@ -544,13 +548,14 @@ public class FoldingProject {
 				System.out.println("For syang, " + i + "," +j + ": "
 						+ master.top.getOutsideMatrixL().getProb(i,j));
 			}
-		}*/
+		}
 		for(int i=0; i< master.bottom.dim; i++){
 			for (int j=0; j< master.bottom.dim; j++){
 				System.out.println("For syang, " + i + "," +j + ": "
 						+ master.bottom.getOutsideMatrixL().getProb(i,j));
 			}
 		}		
+*/
 		
 		
 
@@ -563,6 +568,97 @@ public class FoldingProject {
 					+ ((Runtime.getRuntime().totalMemory() - Runtime
 							.getRuntime().freeMemory()) / 1048576) + " MB ");
 		}
+		
+		
+		
+		
+		
+/*
+//syang11: START test expectation algorithm1
+		if (verbose) {
+			System.out.println("For syang, Calculating test expectation values...");
+		}
+
+			act.setCurrentActivity("For syang, Applying grammar: setting test expectation values");
+
+		// calculate expectation values
+		master.CreateExpectationJobChannel();
+		final AtomicInteger finishedexpectationjobscount1 = new AtomicInteger(0); // counts
+		// how many exp jobs are done
+		Progress expectAct1 = act.getChildProgress(0.11);
+		//final long expgridstarttime = System.nanoTime();
+		while (master.unProcessedExpectationSectors()) {
+			if(act.shouldStop()){
+				executor.shutDown();
+			}
+			act.checkStop();
+			final Progress jobAct = expectAct1.getChildProgress(1.0 / nrsectors);
+			CYKJob cYKJob = master.takeNextExpectationJob(); // This call will
+			// block until a job is ready 
+			// System.out.println(cYKJob.sectorid + " " + " 4 " +
+			// (System.nanoTime()-starttime));
+			final int sectorNumber = cYKJob.getSectorid();
+			executor.startExecution(cYKJob, new JobListener() {
+				public void jobFinished(JobResults result) {
+					master.setExpectationResult(sectorNumber, result);
+					jobAct.setProgress(1.0);
+					// System.out.println(sectorNumber + " " + " 5 " +
+					// (System.nanoTime()-starttime));
+					finishedexpectationjobscount1.incrementAndGet();
+				}
+
+				public void jobFinished(double[][] result) {
+				}// doesn't happen here
+
+				public void jobFinished(List<ResultBundle> result) {
+				} // doesn't happen here
+			});
+		}
+		// wait for last job to finish
+		while (finishedexpectationjobscount1.get() < nrsectors) {
+			Thread.sleep(100);
+			if(act.shouldStop()){
+				executor.shutDown();
+			}
+			act.checkStop();
+		}
+		expectAct1.setProgress(1.0);
+
+		if (verbose) {
+			System.out.println("Done. (time: "
+					+ (System.nanoTime() - starttime) * 1e-9 + " s)");
+			System.out.println("Memory allocated: "
+					+ (Runtime.getRuntime().totalMemory() / 1048576) + " MB");
+			System.out.println("Memory used: "
+					+ ((Runtime.getRuntime().totalMemory() - Runtime
+							.getRuntime().freeMemory()) / 1048576) + " MB ");
+		}
+		if(verbose){
+		System.out.println("Top expectation: "
+				+ master.top.getExpectationMatrix().getProb(distance - 1,
+						length - 1 - master.top.pos[1]));
+		}
+		
+		
+		//syang: directly output the top Expectation value
+		System.out.println("For syang, Top expectation: "
+				+ master.top.getExpectationMatrix().getProb(distance - 1,
+						length - 1 - master.top.pos[1]));	
+//syang: END test expecation algorithm1		
+*/		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 
 	//	long outsidetime = (System.nanoTime());
 	//	System.out.print(nrdivisions + " - ");
@@ -732,7 +828,7 @@ public class FoldingProject {
 		}
 
 		
-		if(entropycalc){
+		if(entropycalc){			//syang: EM algorithm
 			for (int i = 0; i < length; i++) {
 				//Entropy for L->s
 				Sector sector = findSector(i,0, master.bottom);
@@ -907,7 +1003,20 @@ public class FoldingProject {
 		
 		System.out.println("(which is " + percent + "% of the maximum entropy, " + maxentropy + ")");
 		
+		
+		
+/*		//syang: directly output the top inside value after in-out
+		System.out.println("For syang, when entropycalc, top inside S: "
+				+ topInsideS + "Log S:" + logTopInsideS);
+*/
 		}
+		
+		
+/*		//syang: directly output the top inside value after in-out
+		System.out.println("For syang, top inside S: "
+				+ topInsideS);
+*/
+		
 		
 		if (verbose) {
 			System.out.println("Cleaning memory...");
@@ -932,7 +1041,178 @@ public class FoldingProject {
 			System.out.println("Memory used: "
 					+ ((Runtime.getRuntime().totalMemory() - Runtime
 							.getRuntime().freeMemory()) / 1048576) + " MB ");
-		}		
+		}	
+		
+		
+		
+
+		
+		
+//syang11: START variant inside algorithm1
+		if (verbose) {
+			System.out.println("Doing syang's variant inside algorithm...");
+		}
+
+			act.setCurrentActivity("Applying grammar: syang's variant inside algorithm1");
+
+		final AtomicInteger finishedinsidejobscount1 = new AtomicInteger(0); // counts
+		// how many inside jobs are done
+		master.CreateInsideJobChannel();
+		Progress insideAct1 = act.getChildProgress(0.32);
+		//final long gridstarttime = System.nanoTime();
+		while (master.unProcessedInsideSectors()) {
+			if(act.shouldStop()){
+				executor.shutDown();
+			}
+			act.checkStop();
+			CYKJob cYKJob = master.takeNextInsideJob(); // This call will block
+			// until a job is ready
+			final Progress jobAct = insideAct1.getChildProgress(1.0 / nrsectors);
+			// System.out.println(cYKJob.sectorid + " " + " 0 " +
+			// (System.nanoTime()-starttime));
+			final int sectorNumber = cYKJob.getSectorid();
+			executor.startExecution(cYKJob, new JobListener() {
+				public void jobFinished(JobResults result) {
+					master.setInsideResult(sectorNumber, result);
+					jobAct.setProgress(1.0);
+					// System.out.println(sectorNumber + " " + " 1 " +
+					// (System.nanoTime()-starttime));
+					finishedinsidejobscount1.incrementAndGet();
+				}
+
+				public void jobFinished(double[][] result) {
+				}// doesn't happen here
+
+				public void jobFinished(List<ResultBundle> result) {
+				} // doesn't happen here
+			});
+		}
+
+		// wait for last job to finish
+		while (finishedinsidejobscount1.get() < nrsectors) {
+			Thread.sleep(100);
+			if(act.shouldStop()){	
+				executor.shutDown();
+			}
+			act.checkStop();
+		}
+
+		insideAct.setProgress(1.0);
+		
+		//syang: directly output the top inside value
+		System.out.println("For syang, variant top inside1: "
+				+ master.top.getInsideMatrixS().getProb(distance - 1,
+						length - 1 - master.top.pos[1]));
+//syang11: END variant inside algorithm1
+
+		
+		
+		
+
+		
+/*		
+//syang11: START variant outside algorithm1
+		act.setCurrentActivity("Applying grammar: syang's variant outside algorithm");
+		
+		if (verbose) {
+			System.out.println("Doing syang's variant outside values...");
+		}
+		master.CreateOutsideJobChannel();
+		final AtomicInteger finishedoutsidejobscount1 = new AtomicInteger(0); // counts
+		// how many outside jobs are done
+
+		// outside algorithm
+		// set basepairs for outside algorithm (they are shifted relative to
+		// inside algo)
+		number.setToFloat(0);
+		for (int i = 0; i < length; i++) {
+			for (int j = 0; j < length - i; j++) {
+				Sector sectoro = findSector(i, j, master.bottom);
+				int so = findPointST(i, j, sectoro, distance)[0];
+				int to = findPointST(i, j, sectoro, distance)[1];
+				if (i > 0 && (j + i + 1) < length) {
+					number.setToDouble(probmatrix[i - 1][i + j + 1]);
+				} else if (i == 0) {
+					number.setToFloat(0);
+				} else if (j + i + 1 == length) {
+					number.setToFloat(0);
+				}
+				sectoro.setBasePairs(so, to, number);
+			}
+		}
+		
+		if(diffbp){
+			for (int i = 0; i < length; i++) {
+				for (int j = 0; j < length - i; j++) {
+					Sector sectoro = findSector(i, j, master.bottom);
+					int so = findPointST(i, j, sectoro, distance)[0];
+					int to = findPointST(i, j, sectoro, distance)[1];
+					if (i > 0 && (j + i + 1) < length) {
+						number.setToDouble(probmatrix2[i - 1][i + j + 1]);
+					} else if (i == 0) {
+						number.setToFloat(0);
+					} else if (j + i + 1 == length) {
+						number.setToFloat(0);
+					}
+					sectoro.setBasePairs2(so, to, number);
+				}
+			}
+		}
+		
+		//final long outsidegridstarttime = System.nanoTime();
+		Progress outsideAct1 = act.getChildProgress(0.50);
+		while (master.unProcessedOutsideSectors()) {
+			if(act.shouldStop()){
+				executor.shutDown();
+			}
+			act.checkStop();
+			final Progress jobAct = outsideAct1
+					.getChildProgress(1.0 / nrsectors);
+			CYKJob cYKJob = master.takeNextOutsideJob(); // This call will block
+			// until a job is
+			// ready
+			final int sectorNumber = cYKJob.getSectorid();
+			executor.startExecution(cYKJob, new JobListener() {
+				// System.out.println(sectorNumber + " " + " 2 " +
+				// (System.nanoTime()-starttime));
+				public void jobFinished(List<ResultBundle> result) {
+				} // doesn't happen here
+
+				public void jobFinished(JobResults result) {
+					master.setOutsideResult(sectorNumber, result);
+					jobAct.setProgress(1.0);
+					// System.out.println(sectorNumber + " " + " 3 " +
+					// (System.nanoTime()-starttime));
+					finishedoutsidejobscount1.incrementAndGet();
+				}
+
+				public void jobFinished(double[][] result) {
+				}// doesn't happen here
+			});
+		}
+
+		// wait for last job to finish
+		while (finishedoutsidejobscount1.get() < nrsectors) {
+			Thread.sleep(100);
+			if(act.shouldStop()){
+				executor.shutDown();
+			}
+			act.checkStop();
+		}
+		outsideAct1.setProgress(1.0);
+		
+		
+		//syang: directly output the top outside value
+				System.out.println("For syang, Bottom outside: "
+						+ master.bottom.getOutsideMatrixL().getProb(
+								1,1));
+						
+//syang11: END variant outside algorithm1		
+*/		
+		
+		
+
+		
 		
 		if (verbose) {
 			System.out.println("Calculating expectation values...");
@@ -999,7 +1279,7 @@ public class FoldingProject {
 		}
 		
 		
-		//syang: directly output the top inside value
+/*		//syang: directly output the top Expectation value
 		System.out.println("For syang, Top expectation: "
 				+ master.top.getExpectationMatrix().getProb(distance - 1,
 						length - 1 - master.top.pos[1]));
@@ -1011,7 +1291,7 @@ public class FoldingProject {
 						+ master.top.getExpectationMatrix().getProb(i,j));
 			}
 		}
-		
+*/		
 		
 		// System.out.print(nrdivisions + " - ");
 		//System.out.println("TOTAL TIME ELAPSED IN EXPECTATION PART: "
@@ -1077,6 +1357,12 @@ public class FoldingProject {
 			tmp.multiply(2);
 			tmp2.copyFrom(otherexpectationvalue);
 			tmp2.add(tmp);
+			
+			
+/*			//syang: test
+			System.out.println("For syang, when tracing back, expectationvalue: "
+					+ expectationvalue);
+*/			
 
 			if (expectationvalue.equals(tmp2)) {
 				// do the pairing
@@ -1150,38 +1436,53 @@ public class FoldingProject {
 		
 
 		
-/*		
-		//syang11: START variant inside algorithm
+/* syang: test		
+//syang11: START variant inside algorithm2
+		if (verbose) {
+			System.out.println("Cleaning memory...");
+		}
+
+		// assign null's to all inside-outside to enforce clearing of memory in
+		// case it didn't happen
+		Sector thissec1 = master.bottom;
+		thissec1.clearAllInside();
+		thissec1.clearAllOutside();
+		while (thissec1.next != null) {
+			thissec1 = thissec1.next;
+			thissec1.clearAllInside();
+			thissec1.clearAllOutside();
+		}
+		
+		
 		if (verbose) {
 			System.out.println("Doing syang's variant inside algorithm...");
 		}
 
 			act.setCurrentActivity("Applying grammar: syang's variant inside algorithm");
 
-		// calculate expectation values
-		master.CreateExpectationJobChannel();
-		final AtomicInteger finishedexpectationjobscount = new AtomicInteger(0); // counts
-		// how many exp jobs are done
-		Progress expectAct = act.getChildProgress(0.11);
-		//final long expgridstarttime = System.nanoTime();
-		while (master.unProcessedExpectationSectors()) {
+		final AtomicInteger finishedinsidejobscount2 = new AtomicInteger(0); // counts
+		// how many inside jobs are done
+		master.CreateInsideJobChannel();
+		Progress insideAct2 = act.getChildProgress(0.32);
+		//final long gridstarttime = System.nanoTime();
+		while (master.unProcessedInsideSectors()) {
 			if(act.shouldStop()){
 				executor.shutDown();
 			}
 			act.checkStop();
-			final Progress jobAct = expectAct.getChildProgress(1.0 / nrsectors);
-			CYKJob cYKJob = master.takeNextExpectationJob(); // This call will
-			// block until a job is ready 
-			// System.out.println(cYKJob.sectorid + " " + " 4 " +
+			CYKJob cYKJob = master.takeNextInsideJob(); // This call will block
+			// until a job is ready
+			final Progress jobAct = insideAct2.getChildProgress(1.0 / nrsectors);
+			// System.out.println(cYKJob.sectorid + " " + " 0 " +
 			// (System.nanoTime()-starttime));
 			final int sectorNumber = cYKJob.getSectorid();
-			executor.startExecution(cYKJob, new JobListener() {		//syang: implement JobListener interface?
+			executor.startExecution(cYKJob, new JobListener() {
 				public void jobFinished(JobResults result) {
-					master.setExpectationResult(sectorNumber, result);
+					master.setInsideResult(sectorNumber, result);
 					jobAct.setProgress(1.0);
-					// System.out.println(sectorNumber + " " + " 5 " +
+					// System.out.println(sectorNumber + " " + " 1 " +
 					// (System.nanoTime()-starttime));
-					finishedexpectationjobscount.incrementAndGet();
+					finishedinsidejobscount2.incrementAndGet();
 				}
 
 				public void jobFinished(double[][] result) {
@@ -1191,31 +1492,30 @@ public class FoldingProject {
 				} // doesn't happen here
 			});
 		}
+
 		// wait for last job to finish
-		while (finishedexpectationjobscount.get() < nrsectors) {
+		while (finishedinsidejobscount2.get() < nrsectors) {
 			Thread.sleep(100);
-			if(act.shouldStop()){
+			if(act.shouldStop()){	
 				executor.shutDown();
 			}
 			act.checkStop();
 		}
-		expectAct.setProgress(1.0);
 
-		if (verbose) {
-			System.out.println("Done. (time: "
-					+ (System.nanoTime() - starttime) * 1e-9 + " s)");
-			System.out.println("Memory allocated: "
-					+ (Runtime.getRuntime().totalMemory() / 1048576) + " MB");
-			System.out.println("Memory used: "
-					+ ((Runtime.getRuntime().totalMemory() - Runtime
-							.getRuntime().freeMemory()) / 1048576) + " MB ");
-		}
+		insideAct.setProgress(1.0);
+
 		if(verbose){
-		System.out.println("Top expectation: "
-				+ master.top.getExpectationMatrix().getProb(distance - 1,		//syang: distance is like the sub-window size of the probmatrix length for each job
+			System.out.println("Top inside: "
+				+ master.top.getInsideMatrixS().getProb(distance - 1,
 						length - 1 - master.top.pos[1]));
 		}
-		//syang11: END variant inside algorithm
+		
+		
+		//syang: directly output the top inside value
+		System.out.println("For syang, variant top inside2: "
+				+ master.top.getInsideMatrixS().getProb(distance - 1,
+						length - 1 - master.top.pos[1]));
+//syang11: END variant inside algorithm2
 */		
 		
 		
