@@ -407,7 +407,13 @@ public class PPfoldMain implements Runnable {
 				throw new InterruptedException();
 			}
 			//if(!onlyCT){
+			
+//syang: START of commenting out file outputs		
+/*			
 				ExportTools.writeTree(outputdir, exportfilehandle, ".newick", tree);
+*/
+//syang: END of commenting out file outputs				
+			
 			//}
 				tree.print();
 		}
@@ -433,7 +439,10 @@ public class PPfoldMain implements Runnable {
 		//ExportTools.writeCTFormat(outputdir, exportfilehandle+"_RED", ".ct", columns, result.getStructure(), result.getReliability());
 		//ExportTools.writeStructureReliability(outputdir, exportfilehandle+"_RED", ".st", result.getStructure(), result.getReliability());
 
+	
 		
+//syang: START of commenting out file outputs		
+/*
 		System.out.println("Structure prediction complete. Transforming to include left-out columns " +
 				"(total " + leftoutcolumns.size() + ")...");
 
@@ -542,6 +551,10 @@ public class PPfoldMain implements Runnable {
 			ExportTools.writeStructureReliability(outputdir, filehandle, ".st", reducedStructure, reducedProbabilities);
 			
 		}
+*/
+//syang: END of commenting out file outputs	
+		
+		
 		
 		progress.setCurrentActivity("Folding finished.");
 		progress.setProgress(1.0);

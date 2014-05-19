@@ -403,10 +403,10 @@ public class FoldingProject {
 		
 		
 		//syang: directly output the top inside value
-		System.out.println("For syang, Top inside: "
+/*		System.out.println("For syang, Top inside: "
 				+ master.top.getInsideMatrixS().getProb(distance - 1,
 						length - 1 - master.top.pos[1]));
-		
+*/		
 /*		//syang: test
 		System.out.println("For syang, distance: "
 				+ distance + "; length:" + length + "; master.top.pos[1]:" 
@@ -529,14 +529,14 @@ public class FoldingProject {
 		outsideAct.setProgress(1.0);
 		
 		
-		//syang: directly output the top outside value
+/*		//syang: directly output the top outside value
 		System.out.println("For syang, Bottom outside: "
 				+ master.bottom.getOutsideMatrixL().getProb(
 						1,1));
-/*				System.out.println("For syang, Bottom outside: "
+				System.out.println("For syang, Bottom outside: "
 						+ master.bottom.getOutsideMatrixL().getProb(
 								length - 1 - master.bottom.pos[1],distance - 1));
-/*				
+*/				
 		//syang: test
 //		System.out.println("For syang, distance: "
 //				+ distance + "; length:" + length + "; master.top.pos[1]:" 
@@ -1213,7 +1213,8 @@ public class FoldingProject {
 		
 
 		
-		
+//syang: START of commenting out expectation calculation		
+/*		
 		if (verbose) {
 			System.out.println("Calculating expectation values...");
 		}
@@ -1279,19 +1280,19 @@ public class FoldingProject {
 		}
 		
 		
-/*		//syang: directly output the top Expectation value
-		System.out.println("For syang, Top expectation: "
-				+ master.top.getExpectationMatrix().getProb(distance - 1,
-						length - 1 - master.top.pos[1]));
+//		//syang: directly output the top Expectation value
+//		System.out.println("For syang, Top expectation: "
+//				+ master.top.getExpectationMatrix().getProb(distance - 1,
+//						length - 1 - master.top.pos[1]));
+//		
+//		//syang: test
+//		for(int i=0; i< master.top.dim; i++){
+//			for (int j=0; j< master.top.dim; j++){
+//				System.out.println("For syang, " + i + "," +j + ": "
+//						+ master.top.getExpectationMatrix().getProb(i,j));
+//			}
+//		}
 		
-		//syang: test
-		for(int i=0; i< master.top.dim; i++){
-			for (int j=0; j< master.top.dim; j++){
-				System.out.println("For syang, " + i + "," +j + ": "
-						+ master.top.getExpectationMatrix().getProb(i,j));
-			}
-		}
-*/		
 		
 		// System.out.print(nrdivisions + " - ");
 		//System.out.println("TOTAL TIME ELAPSED IN EXPECTATION PART: "
@@ -1359,10 +1360,10 @@ public class FoldingProject {
 			tmp2.add(tmp);
 			
 			
-/*			//syang: test
-			System.out.println("For syang, when tracing back, expectationvalue: "
-					+ expectationvalue);
-*/			
+//			//syang: test
+//			System.out.println("For syang, when tracing back, expectationvalue: "
+//					+ expectationvalue);
+			
 
 			if (expectationvalue.equals(tmp2)) {
 				// do the pairing
@@ -1432,11 +1433,15 @@ public class FoldingProject {
 					+ ((Runtime.getRuntime().totalMemory() - Runtime
 							.getRuntime().freeMemory()) / 1048576) + " MB ");
 		}
+*/
+//syang: END of commenting out expectation calculation		
+		
+		
 		
 		
 
 		
-/* syang: test		
+/* syang: test(not use)		
 //syang11: START variant inside algorithm2
 		if (verbose) {
 			System.out.println("Cleaning memory...");
@@ -1521,7 +1526,8 @@ public class FoldingProject {
 		
 		
 		
-
+//syang: START of commenting out finalizing		
+/*
 		if (verbose) {
 			System.out.println("Finalizing results... ");
 		}
@@ -1593,6 +1599,13 @@ public class FoldingProject {
 
 		act.setProgress(1.0);
 		return result;
+*/
+		ResultBundle result = new ResultBundle();
+		act.setProgress(1.0);
+		return result;
+//syang: END of commenting out finalizing			
+		
+		
 	}
 
 	private static double[][] createPhyloProb(Progress act, int userjobsnr,
