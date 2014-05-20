@@ -1100,9 +1100,12 @@ public class FoldingProject {
 		insideAct.setProgress(1.0);
 		
 		//syang: directly output the top inside value
-		System.out.println("For syang, variant top inside1: "
-				+ master.top.getInsideMatrixS().getProb(distance - 1,
-						length - 1 - master.top.pos[1]));
+//		System.out.println("For syang, variant top inside1: "
+//				+ master.top.getInsideMatrixS().getProb(distance - 1,
+//						length - 1 - master.top.pos[1]));
+		
+		PointRes topInsideS_syang = master.top.getInsideMatrixS().getProb(distance - 1, length - 1 - master.top.pos[1]);
+		System.out.println("Constraint top inside variable (i.e. motif-wise prob): " + topInsideS_syang + " = " + topInsideS_syang.toDouble());
 //syang11: END variant inside algorithm1
 
 		
