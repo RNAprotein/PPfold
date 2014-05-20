@@ -1,0 +1,738 @@
+diff --git a/PPfold/src/com/ppfold/algo/ExpectationMatrixCalc.java b/PPfold/src/com/ppfold/algo/ExpectationMatrixCalc.java
+index 3ee7987..0e3d983 100644
+--- a/PPfold/src/com/ppfold/algo/ExpectationMatrixCalc.java
++++ b/PPfold/src/com/ppfold/algo/ExpectationMatrixCalc.java
+@@ -27,14 +27,14 @@ public class ExpectationMatrixCalc {
+ 		// job
+ 
+ 		// X is container for data we want to find -- all results for the job
+-		JobResults X = new JobResults(job.getN());
++		JobResults X = new JobResults(job.getN());		//syang: X contains L, S, F three ResMatrix
+ 		ResMatrix E = X.S;
+ 		ResMatrix Bp = job.insideresultsS; // own matrix basepairs
+ 
+-		ResMatrix partialE = new ResMatrix(dim);
++		ResMatrix partialE = new ResMatrix(dim);		//initial value: all zero
+ 
+ 		// first create matrix multiplication results
+-		if (job.getBelow().size() != 0) {
++		if (job.getBelow().size() != 0) {			//syang: the rule for DP, here, it is the rule for find the max E_i,j value
+ 			for (int c = 1; c <= job.getBelow().size() - 1; c++) {
+ 				// below: E matrix of that sector
+ 				// diagbelow: E matrix of that sector
+diff --git a/PPfold/src/com/ppfold/algo/FoldingProject.java b/PPfold/src/com/ppfold/algo/FoldingProject.java
+index 83239fb..682fac0 100644
+--- a/PPfold/src/com/ppfold/algo/FoldingProject.java
++++ b/PPfold/src/com/ppfold/algo/FoldingProject.java
+@@ -129,7 +129,7 @@ public class FoldingProject {
+ 			System.out.println("Number of auxiliary data items: " + extradata_list.size());
+ 			ArrayList<ForcedConstraints> fcList = new ArrayList<ForcedConstraints>();
+ 			for(ExtraData data:extradata_list){
+-				if(data instanceof ForcedConstraints){
++				if(data instanceof ForcedConstraints){			//syang: pick ForcedConstraints out from ExtraData?
+ 					//If forcing constraints, collect them into one and remove from the list
+ 					fcList.add((ForcedConstraints) data);
+ 				}
+@@ -219,7 +219,7 @@ public class FoldingProject {
+ 			double[][] prob, double[][] probmatrix, double[][] probmatrix2,
+ 			AsynchronousJobExecutor executor, final boolean verbose, final boolean diffbp, final boolean entropycalc)
+ 			throws InterruptedException {
+-		PointRes tmp = new PointRes(0, 0);
++		PointRes tmp = new PointRes(0, 0);		//syang: first 0 is fraction, second 0 is exponent
+ 		final long starttime = System.nanoTime();
+ 
+ 		if (verbose) {
+@@ -400,6 +400,27 @@ public class FoldingProject {
+ 				+ master.top.getInsideMatrixS().getProb(distance - 1,
+ 						length - 1 - master.top.pos[1]));
+ 		}
++		
++		
++		//syang: directly output the top inside value
++/*		System.out.println("For syang, Top inside: "
++				+ master.top.getInsideMatrixS().getProb(distance - 1,
++						length - 1 - master.top.pos[1]));
++*/		
++/*		//syang: test
++		System.out.println("For syang, distance: "
++				+ distance + "; length:" + length + "; master.top.pos[1]:" 
++				+ master.top.pos[1] + "; n:" 
++				+ master.top.getInsideMatrixS().get_n() + "; dim:" 
++				+ master.top.dim);
++		for(int i=0; i< master.top.dim; i++){
++			for (int j=0; j< master.top.dim; j++){
++				System.out.println("For syang, " + i + "," +j + ": "
++						+ master.top.getInsideMatrixS().getProb(i,j));
++			}
++		}
++*/		
++		
+ 		//long insidetime = System.nanoTime();
+ 		//System.out.print(nrdivisions + " - ");
+ 		//System.out.println("TOTAL TIME ELAPSED IN INSIDE PART (ALL): "
+@@ -506,6 +527,37 @@ public class FoldingProject {
+ 			act.checkStop();
+ 		}
+ 		outsideAct.setProgress(1.0);
++		
++		
++/*		//syang: directly output the top outside value
++		System.out.println("For syang, Bottom outside: "
++				+ master.bottom.getOutsideMatrixL().getProb(
++						1,1));
++				System.out.println("For syang, Bottom outside: "
++						+ master.bottom.getOutsideMatrixL().getProb(
++								length - 1 - master.bottom.pos[1],distance - 1));
++*/				
++		//syang: test
++//		System.out.println("For syang, distance: "
++//				+ distance + "; length:" + length + "; master.top.pos[1]:" 
++//				+ master.top.pos[1] + "; n:" 
++//				+ master.top.getInsideMatrixS().get_n() + "; dim:" 
++//				+ master.top.dim);
++/*		for(int i=0; i< master.top.dim; i++){
++			for (int j=0; j< master.top.dim; j++){
++				System.out.println("For syang, " + i + "," +j + ": "
++						+ master.top.getOutsideMatrixL().getProb(i,j));
++			}
++		}
++		for(int i=0; i< master.bottom.dim; i++){
++			for (int j=0; j< master.bottom.dim; j++){
++				System.out.println("For syang, " + i + "," +j + ": "
++						+ master.bottom.getOutsideMatrixL().getProb(i,j));
++			}
++		}		
++*/
++		
++		
+ 
+ 		if (verbose) {
+ 			System.out.println("Done. (time: "
+@@ -516,6 +568,97 @@ public class FoldingProject {
+ 					+ ((Runtime.getRuntime().totalMemory() - Runtime
+ 							.getRuntime().freeMemory()) / 1048576) + " MB ");
+ 		}
++		
++		
++		
++		
++		
++/*
++//syang11: START test expectation algorithm1
++		if (verbose) {
++			System.out.println("For syang, Calculating test expectation values...");
++		}
++
++			act.setCurrentActivity("For syang, Applying grammar: setting test expectation values");
++
++		// calculate expectation values
++		master.CreateExpectationJobChannel();
++		final AtomicInteger finishedexpectationjobscount1 = new AtomicInteger(0); // counts
++		// how many exp jobs are done
++		Progress expectAct1 = act.getChildProgress(0.11);
++		//final long expgridstarttime = System.nanoTime();
++		while (master.unProcessedExpectationSectors()) {
++			if(act.shouldStop()){
++				executor.shutDown();
++			}
++			act.checkStop();
++			final Progress jobAct = expectAct1.getChildProgress(1.0 / nrsectors);
++			CYKJob cYKJob = master.takeNextExpectationJob(); // This call will
++			// block until a job is ready 
++			// System.out.println(cYKJob.sectorid + " " + " 4 " +
++			// (System.nanoTime()-starttime));
++			final int sectorNumber = cYKJob.getSectorid();
++			executor.startExecution(cYKJob, new JobListener() {
++				public void jobFinished(JobResults result) {
++					master.setExpectationResult(sectorNumber, result);
++					jobAct.setProgress(1.0);
++					// System.out.println(sectorNumber + " " + " 5 " +
++					// (System.nanoTime()-starttime));
++					finishedexpectationjobscount1.incrementAndGet();
++				}
++
++				public void jobFinished(double[][] result) {
++				}// doesn't happen here
++
++				public void jobFinished(List<ResultBundle> result) {
++				} // doesn't happen here
++			});
++		}
++		// wait for last job to finish
++		while (finishedexpectationjobscount1.get() < nrsectors) {
++			Thread.sleep(100);
++			if(act.shouldStop()){
++				executor.shutDown();
++			}
++			act.checkStop();
++		}
++		expectAct1.setProgress(1.0);
++
++		if (verbose) {
++			System.out.println("Done. (time: "
++					+ (System.nanoTime() - starttime) * 1e-9 + " s)");
++			System.out.println("Memory allocated: "
++					+ (Runtime.getRuntime().totalMemory() / 1048576) + " MB");
++			System.out.println("Memory used: "
++					+ ((Runtime.getRuntime().totalMemory() - Runtime
++							.getRuntime().freeMemory()) / 1048576) + " MB ");
++		}
++		if(verbose){
++		System.out.println("Top expectation: "
++				+ master.top.getExpectationMatrix().getProb(distance - 1,
++						length - 1 - master.top.pos[1]));
++		}
++		
++		
++		//syang: directly output the top Expectation value
++		System.out.println("For syang, Top expectation: "
++				+ master.top.getExpectationMatrix().getProb(distance - 1,
++						length - 1 - master.top.pos[1]));	
++//syang: END test expecation algorithm1		
++*/		
++		
++		
++		
++		
++		
++		
++		
++		
++		
++		
++		
++		
++		
+ 
+ 	//	long outsidetime = (System.nanoTime());
+ 	//	System.out.print(nrdivisions + " - ");
+@@ -685,7 +828,7 @@ public class FoldingProject {
+ 		}
+ 
+ 		
+-		if(entropycalc){
++		if(entropycalc){			//syang: EM algorithm
+ 			for (int i = 0; i < length; i++) {
+ 				//Entropy for L->s
+ 				Sector sector = findSector(i,0, master.bottom);
+@@ -860,8 +1003,21 @@ public class FoldingProject {
+ 		
+ 		System.out.println("(which is " + percent + "% of the maximum entropy, " + maxentropy + ")");
+ 		
++		
++		
++/*		//syang: directly output the top inside value after in-out
++		System.out.println("For syang, when entropycalc, top inside S: "
++				+ topInsideS + "Log S:" + logTopInsideS);
++*/
+ 		}
+ 		
++		
++/*		//syang: directly output the top inside value after in-out
++		System.out.println("For syang, top inside S: "
++				+ topInsideS);
++*/
++		
++		
+ 		if (verbose) {
+ 			System.out.println("Cleaning memory...");
+ 		}
+@@ -885,8 +1041,183 @@ public class FoldingProject {
+ 			System.out.println("Memory used: "
+ 					+ ((Runtime.getRuntime().totalMemory() - Runtime
+ 							.getRuntime().freeMemory()) / 1048576) + " MB ");
+-		}		
++		}	
++		
++		
++		
++
++		
++		
++//syang11: START variant inside algorithm1
++		if (verbose) {
++			System.out.println("Doing syang's variant inside algorithm...");
++		}
++
++			act.setCurrentActivity("Applying grammar: syang's variant inside algorithm1");
++
++		final AtomicInteger finishedinsidejobscount1 = new AtomicInteger(0); // counts
++		// how many inside jobs are done
++		master.CreateInsideJobChannel();
++		Progress insideAct1 = act.getChildProgress(0.32);
++		//final long gridstarttime = System.nanoTime();
++		while (master.unProcessedInsideSectors()) {
++			if(act.shouldStop()){
++				executor.shutDown();
++			}
++			act.checkStop();
++			CYKJob cYKJob = master.takeNextInsideJob(); // This call will block
++			// until a job is ready
++			final Progress jobAct = insideAct1.getChildProgress(1.0 / nrsectors);
++			// System.out.println(cYKJob.sectorid + " " + " 0 " +
++			// (System.nanoTime()-starttime));
++			final int sectorNumber = cYKJob.getSectorid();
++			executor.startExecution(cYKJob, new JobListener() {
++				public void jobFinished(JobResults result) {
++					master.setInsideResult(sectorNumber, result);
++					jobAct.setProgress(1.0);
++					// System.out.println(sectorNumber + " " + " 1 " +
++					// (System.nanoTime()-starttime));
++					finishedinsidejobscount1.incrementAndGet();
++				}
++
++				public void jobFinished(double[][] result) {
++				}// doesn't happen here
++
++				public void jobFinished(List<ResultBundle> result) {
++				} // doesn't happen here
++			});
++		}
++
++		// wait for last job to finish
++		while (finishedinsidejobscount1.get() < nrsectors) {
++			Thread.sleep(100);
++			if(act.shouldStop()){	
++				executor.shutDown();
++			}
++			act.checkStop();
++		}
++
++		insideAct.setProgress(1.0);
++		
++		//syang: directly output the top inside value
++//		System.out.println("For syang, variant top inside1: "
++//				+ master.top.getInsideMatrixS().getProb(distance - 1,
++//						length - 1 - master.top.pos[1]));
++		
++		PointRes topInsideS_syang = master.top.getInsideMatrixS().getProb(distance - 1, length - 1 - master.top.pos[1]);
++		System.out.println("Constraint top inside variable (i.e. motif-wise prob): " + topInsideS_syang + " = " + topInsideS_syang.toDouble());
++//syang11: END variant inside algorithm1
++
++		
++		
++		
++
++		
++/*		
++//syang11: START variant outside algorithm1
++		act.setCurrentActivity("Applying grammar: syang's variant outside algorithm");
++		
++		if (verbose) {
++			System.out.println("Doing syang's variant outside values...");
++		}
++		master.CreateOutsideJobChannel();
++		final AtomicInteger finishedoutsidejobscount1 = new AtomicInteger(0); // counts
++		// how many outside jobs are done
++
++		// outside algorithm
++		// set basepairs for outside algorithm (they are shifted relative to
++		// inside algo)
++		number.setToFloat(0);
++		for (int i = 0; i < length; i++) {
++			for (int j = 0; j < length - i; j++) {
++				Sector sectoro = findSector(i, j, master.bottom);
++				int so = findPointST(i, j, sectoro, distance)[0];
++				int to = findPointST(i, j, sectoro, distance)[1];
++				if (i > 0 && (j + i + 1) < length) {
++					number.setToDouble(probmatrix[i - 1][i + j + 1]);
++				} else if (i == 0) {
++					number.setToFloat(0);
++				} else if (j + i + 1 == length) {
++					number.setToFloat(0);
++				}
++				sectoro.setBasePairs(so, to, number);
++			}
++		}
++		
++		if(diffbp){
++			for (int i = 0; i < length; i++) {
++				for (int j = 0; j < length - i; j++) {
++					Sector sectoro = findSector(i, j, master.bottom);
++					int so = findPointST(i, j, sectoro, distance)[0];
++					int to = findPointST(i, j, sectoro, distance)[1];
++					if (i > 0 && (j + i + 1) < length) {
++						number.setToDouble(probmatrix2[i - 1][i + j + 1]);
++					} else if (i == 0) {
++						number.setToFloat(0);
++					} else if (j + i + 1 == length) {
++						number.setToFloat(0);
++					}
++					sectoro.setBasePairs2(so, to, number);
++				}
++			}
++		}
++		
++		//final long outsidegridstarttime = System.nanoTime();
++		Progress outsideAct1 = act.getChildProgress(0.50);
++		while (master.unProcessedOutsideSectors()) {
++			if(act.shouldStop()){
++				executor.shutDown();
++			}
++			act.checkStop();
++			final Progress jobAct = outsideAct1
++					.getChildProgress(1.0 / nrsectors);
++			CYKJob cYKJob = master.takeNextOutsideJob(); // This call will block
++			// until a job is
++			// ready
++			final int sectorNumber = cYKJob.getSectorid();
++			executor.startExecution(cYKJob, new JobListener() {
++				// System.out.println(sectorNumber + " " + " 2 " +
++				// (System.nanoTime()-starttime));
++				public void jobFinished(List<ResultBundle> result) {
++				} // doesn't happen here
++
++				public void jobFinished(JobResults result) {
++					master.setOutsideResult(sectorNumber, result);
++					jobAct.setProgress(1.0);
++					// System.out.println(sectorNumber + " " + " 3 " +
++					// (System.nanoTime()-starttime));
++					finishedoutsidejobscount1.incrementAndGet();
++				}
++
++				public void jobFinished(double[][] result) {
++				}// doesn't happen here
++			});
++		}
++
++		// wait for last job to finish
++		while (finishedoutsidejobscount1.get() < nrsectors) {
++			Thread.sleep(100);
++			if(act.shouldStop()){
++				executor.shutDown();
++			}
++			act.checkStop();
++		}
++		outsideAct1.setProgress(1.0);
++		
++		
++		//syang: directly output the top outside value
++				System.out.println("For syang, Bottom outside: "
++						+ master.bottom.getOutsideMatrixL().getProb(
++								1,1));
++						
++//syang11: END variant outside algorithm1		
++*/		
++		
++		
++
+ 		
++//syang: START of commenting out expectation calculation		
++/*		
+ 		if (verbose) {
+ 			System.out.println("Calculating expectation values...");
+ 		}
+@@ -950,6 +1281,22 @@ public class FoldingProject {
+ 				+ master.top.getExpectationMatrix().getProb(distance - 1,
+ 						length - 1 - master.top.pos[1]));
+ 		}
++		
++		
++//		//syang: directly output the top Expectation value
++//		System.out.println("For syang, Top expectation: "
++//				+ master.top.getExpectationMatrix().getProb(distance - 1,
++//						length - 1 - master.top.pos[1]));
++//		
++//		//syang: test
++//		for(int i=0; i< master.top.dim; i++){
++//			for (int j=0; j< master.top.dim; j++){
++//				System.out.println("For syang, " + i + "," +j + ": "
++//						+ master.top.getExpectationMatrix().getProb(i,j));
++//			}
++//		}
++		
++		
+ 		// System.out.print(nrdivisions + " - ");
+ 		//System.out.println("TOTAL TIME ELAPSED IN EXPECTATION PART: "
+ 		//		+ (System.nanoTime() - outsidetime) * 1e-9 + " seconds ");
+@@ -1014,6 +1361,12 @@ public class FoldingProject {
+ 			tmp.multiply(2);
+ 			tmp2.copyFrom(otherexpectationvalue);
+ 			tmp2.add(tmp);
++			
++			
++//			//syang: test
++//			System.out.println("For syang, when tracing back, expectationvalue: "
++//					+ expectationvalue);
++			
+ 
+ 			if (expectationvalue.equals(tmp2)) {
+ 				// do the pairing
+@@ -1083,7 +1436,101 @@ public class FoldingProject {
+ 					+ ((Runtime.getRuntime().totalMemory() - Runtime
+ 							.getRuntime().freeMemory()) / 1048576) + " MB ");
+ 		}
++*/
++//syang: END of commenting out expectation calculation		
++		
++		
++		
++		
+ 
++		
++/* syang: test(not use)		
++//syang11: START variant inside algorithm2
++		if (verbose) {
++			System.out.println("Cleaning memory...");
++		}
++
++		// assign null's to all inside-outside to enforce clearing of memory in
++		// case it didn't happen
++		Sector thissec1 = master.bottom;
++		thissec1.clearAllInside();
++		thissec1.clearAllOutside();
++		while (thissec1.next != null) {
++			thissec1 = thissec1.next;
++			thissec1.clearAllInside();
++			thissec1.clearAllOutside();
++		}
++		
++		
++		if (verbose) {
++			System.out.println("Doing syang's variant inside algorithm...");
++		}
++
++			act.setCurrentActivity("Applying grammar: syang's variant inside algorithm");
++
++		final AtomicInteger finishedinsidejobscount2 = new AtomicInteger(0); // counts
++		// how many inside jobs are done
++		master.CreateInsideJobChannel();
++		Progress insideAct2 = act.getChildProgress(0.32);
++		//final long gridstarttime = System.nanoTime();
++		while (master.unProcessedInsideSectors()) {
++			if(act.shouldStop()){
++				executor.shutDown();
++			}
++			act.checkStop();
++			CYKJob cYKJob = master.takeNextInsideJob(); // This call will block
++			// until a job is ready
++			final Progress jobAct = insideAct2.getChildProgress(1.0 / nrsectors);
++			// System.out.println(cYKJob.sectorid + " " + " 0 " +
++			// (System.nanoTime()-starttime));
++			final int sectorNumber = cYKJob.getSectorid();
++			executor.startExecution(cYKJob, new JobListener() {
++				public void jobFinished(JobResults result) {
++					master.setInsideResult(sectorNumber, result);
++					jobAct.setProgress(1.0);
++					// System.out.println(sectorNumber + " " + " 1 " +
++					// (System.nanoTime()-starttime));
++					finishedinsidejobscount2.incrementAndGet();
++				}
++
++				public void jobFinished(double[][] result) {
++				}// doesn't happen here
++
++				public void jobFinished(List<ResultBundle> result) {
++				} // doesn't happen here
++			});
++		}
++
++		// wait for last job to finish
++		while (finishedinsidejobscount2.get() < nrsectors) {
++			Thread.sleep(100);
++			if(act.shouldStop()){	
++				executor.shutDown();
++			}
++			act.checkStop();
++		}
++
++		insideAct.setProgress(1.0);
++
++		if(verbose){
++			System.out.println("Top inside: "
++				+ master.top.getInsideMatrixS().getProb(distance - 1,
++						length - 1 - master.top.pos[1]));
++		}
++		
++		
++		//syang: directly output the top inside value
++		System.out.println("For syang, variant top inside2: "
++				+ master.top.getInsideMatrixS().getProb(distance - 1,
++						length - 1 - master.top.pos[1]));
++//syang11: END variant inside algorithm2
++*/		
++		
++		
++		
++		
++//syang: START of commenting out finalizing		
++/*
+ 		if (verbose) {
+ 			System.out.println("Finalizing results... ");
+ 		}
+@@ -1155,6 +1602,13 @@ public class FoldingProject {
+ 
+ 		act.setProgress(1.0);
+ 		return result;
++*/
++		ResultBundle result = new ResultBundle();
++		act.setProgress(1.0);
++		return result;
++//syang: END of commenting out finalizing			
++		
++		
+ 	}
+ 
+ 	private static double[][] createPhyloProb(Progress act, int userjobsnr,
+diff --git a/PPfold/src/com/ppfold/algo/PointRes.java b/PPfold/src/com/ppfold/algo/PointRes.java
+index 2b2ac3c..6b926f5 100644
+--- a/PPfold/src/com/ppfold/algo/PointRes.java
++++ b/PPfold/src/com/ppfold/algo/PointRes.java
+@@ -122,7 +122,7 @@ public class PointRes implements Serializable {
+ 		return this;
+ 	}
+ 
+-	public PointRes add(PointRes point) {
++	public PointRes add(PointRes point) {			//syang: the "+" operation for exponents
+ 		int diff = this.exponent - point.exponent;
+ 		if ((diff < -126 && point.fraction != 0) || this.fraction == 0) {
+ 			this.exponent = point.exponent;
+diff --git a/PPfold/src/com/ppfold/algo/ResMatrix.java b/PPfold/src/com/ppfold/algo/ResMatrix.java
+index 3b4fb56..5275b96 100644
+--- a/PPfold/src/com/ppfold/algo/ResMatrix.java
++++ b/PPfold/src/com/ppfold/algo/ResMatrix.java
+@@ -20,6 +20,14 @@ public class ResMatrix implements Serializable {
+ 	// dimensions of this resmatrix
+ 	private int n;
+ 
++	
++	//syang: for test purpose, getter function for n
++	public int get_n(){
++		return n;
++	}
++	
++	
++	
+ 	// Constructor
+ 	public ResMatrix(int n) {
+ 		fraction = new float[n][n];
+@@ -80,7 +88,7 @@ public class ResMatrix implements Serializable {
+ 	}
+ 
+ 	public void replaceWithMaxSum(ResMatrix E1, ResMatrix E2, PointRes tmp,
+-			PointRes tmp2) {
++			PointRes tmp2) {		//syang: each vector of E1 + entire E2, then the result compares to this, maintain the max
+ 		for (int s = 0; s < this.n; s++) {
+ 			for (int t = 0; t < this.n; t++) {
+ 				for (int ss = 0; ss < this.n; ss++) {
+@@ -122,7 +130,7 @@ public class ResMatrix implements Serializable {
+ 	}
+ 
+ 	public void incrementWithLS(ResMatrix L, ResMatrix S, double prob,
+-			PointRes tmp, PointRes tmp2) {
++			PointRes tmp, PointRes tmp2) {		//syang:
+ 		for (int s = 0; s < this.n; s++) {
+ 			for (int t = 0; t < this.n; t++) {
+ 				for (int ss = 0; ss < this.n; ss++) {
+diff --git a/PPfold/src/com/ppfold/algo/extradata/ForcedConstraints.java b/PPfold/src/com/ppfold/algo/extradata/ForcedConstraints.java
+index 5452a79..e7a4614 100644
+--- a/PPfold/src/com/ppfold/algo/extradata/ForcedConstraints.java
++++ b/PPfold/src/com/ppfold/algo/extradata/ForcedConstraints.java
+@@ -410,7 +410,7 @@ public class ForcedConstraints implements ExtraData {
+ 		int cnt = 0; 
+ 		while(iter.hasNext()){
+ 			int col = iter.next();
+-			for(int i = current; i<=col; i++){
++			for(int i = current; i<=Math.min(col, maxpos); i++){ //syang: debugged version from Zsuzsanna's PPfoldV3.1.1; the old bug codes is: for(int i = current; i<=col; i++){
+ 				if(i == col){
+ 					cnt ++; //one more column removed
+ 					remColCnt[i] = -1; //Remove this column 
+diff --git a/PPfold/src/com/ppfold/main/PPfoldMain.java b/PPfold/src/com/ppfold/main/PPfoldMain.java
+index e706b63..99ec391 100644
+--- a/PPfold/src/com/ppfold/main/PPfoldMain.java
++++ b/PPfold/src/com/ppfold/main/PPfoldMain.java
+@@ -206,7 +206,7 @@ public class PPfoldMain implements Runnable {
+     			progress = NullProgress.INSTANCE;
+     		}
+     		progress.setCurrentActivity("Preparing folding...");
+-    		fold(progress, align.getSequences(), align.getNames(), tree, param, extradata);
++    		fold(progress, align.getSequences(), align.getNames(), tree, param, extradata);		//align.* get the sequence and header name of a fasta alignment
+     
+             System.out.println();
+             System.out.println("FINISHED ");
+@@ -268,7 +268,7 @@ public class PPfoldMain implements Runnable {
+ 		List<char[]> fullcolumns = new ArrayList<char[]>();
+ 		//this will contain the FULL alignment (for outputting later) 
+ 
+-		int nrseq = sequences.size();
++		int nrseq = sequences.size();			//syang: # of species, nr stands for number
+ 
+ 		char[] thiscolumn = new char[nrseq]; 
+ 		char[] finalstructure = new char[sequences.get(0).length()];
+@@ -302,7 +302,7 @@ public class PPfoldMain implements Runnable {
+ 					}
+ 				}
+ 
+-				if((float)gapscounter/nrseq >= 0.25 && isoktoremove){
++				if((float)gapscounter/nrseq >= 0.25 && isoktoremove){		//syang: gaps column with no extraData will be assigned as '.' and left out
+ 					finalstructure[i] = '.'; 
+ 					finalreliability[i] = 0;
+ 					leftoutcolumns.add(i);
+@@ -366,7 +366,7 @@ public class PPfoldMain implements Runnable {
+ 		}
+ 
+ 		Progress activity = progress.getChildProgress(0.05);
+-		if(tree==null){
++		if(tree==null){				//syang: build NJ tree
+ 			try {				
+ 			//System.out.println("Creating tree by neighbour joining... ");
+ 				tree = NeighbourJoining.generateTreeNJ(activity, sequences,columns_int, names, param);
+@@ -394,10 +394,10 @@ public class PPfoldMain implements Runnable {
+ 		System.out.println("Checking finished");
+ 		
+ 		Progress activity2 = progress.getChildProgress(0.05);
+-		if(optimizetree){
++		if(optimizetree){		//syang: optimize tree branch lengths
+ 			//System.out.println("Optimizing branch lengths...");
+ 			try {
+-				tree.optimizeBranchLengths(activity2, columns_int,fullcolumns,names,param, iterlimit);
++				tree.optimizeBranchLengths(activity2, columns_int,fullcolumns,names,param, iterlimit);		//syang: iterlimit==10
+ 			} catch (InterruptedException e) {
+ 				System.out.println("Process interrupted by user! Stopping...");
+ 				executor.shutDown();
+@@ -407,7 +407,13 @@ public class PPfoldMain implements Runnable {
+ 				throw new InterruptedException();
+ 			}
+ 			//if(!onlyCT){
++			
++//syang: START of commenting out file outputs		
++/*			
+ 				ExportTools.writeTree(outputdir, exportfilehandle, ".newick", tree);
++*/
++//syang: END of commenting out file outputs				
++			
+ 			//}
+ 				tree.print();
+ 		}
+@@ -417,7 +423,7 @@ public class PPfoldMain implements Runnable {
+ 		Progress activity3 = progress.getChildProgress(0.88);
+ 		ResultBundle result = null;
+ 		try{
+-			result = FoldingProject.fold(activity3, phylodivisions,scfgdivisions, tree, 
++			result = FoldingProject.fold(activity3, phylodivisions,scfgdivisions, tree, 		//syang: the folding job
+ 				columns, names, param, executor, verbose,1,extradata,false,entropycalc);
+ 		}
+ 		catch(InterruptedException e){
+@@ -433,7 +439,10 @@ public class PPfoldMain implements Runnable {
+ 		//ExportTools.writeCTFormat(outputdir, exportfilehandle+"_RED", ".ct", columns, result.getStructure(), result.getReliability());
+ 		//ExportTools.writeStructureReliability(outputdir, exportfilehandle+"_RED", ".st", result.getStructure(), result.getReliability());
+ 
++	
+ 		
++//syang: START of commenting out file outputs		
++/*
+ 		System.out.println("Structure prediction complete. Transforming to include left-out columns " +
+ 				"(total " + leftoutcolumns.size() + ")...");
+ 
+@@ -542,6 +551,10 @@ public class PPfoldMain implements Runnable {
+ 			ExportTools.writeStructureReliability(outputdir, filehandle, ".st", reducedStructure, reducedProbabilities);
+ 			
+ 		}
++*/
++//syang: END of commenting out file outputs	
++		
++		
+ 		
+ 		progress.setCurrentActivity("Folding finished.");
+ 		progress.setProgress(1.0);
+
