@@ -114,6 +114,9 @@ public class FoldingProject {
 				names, columns.size(), param, executor, verbose, execnr);
 
 		//If there are extra data, multiply probmatrix with the relevant values
+		//syang: probmatrix[63][63] for gca-alignment_sy.fasta, so probmatrix.length==probmatrix[0].length==68-5, i.e.
+		//remove columns where there are gaps in them
+		//System.out.println("\nsyang debug: "+probmatrix.length + " "+probmatrix[0].length);
 		
 		double[][] probmatrix2 = null;
 		if(diffbp&&extradata_list!=null){
@@ -403,10 +406,10 @@ public class FoldingProject {
 		
 		
 		//syang: directly output the top inside value
-/*		System.out.println("For syang, Top inside: "
-				+ master.top.getInsideMatrixS().getProb(distance - 1,
-						length - 1 - master.top.pos[1]));
-*/		
+//		System.out.println("For syang, Top inside: "
+//				+ master.top.getInsideMatrixS().getProb(distance - 1,
+//						length - 1 - master.top.pos[1]));
+		
 /*		//syang: test
 		System.out.println("For syang, distance: "
 				+ distance + "; length:" + length + "; master.top.pos[1]:" 
@@ -419,7 +422,7 @@ public class FoldingProject {
 						+ master.top.getInsideMatrixS().getProb(i,j));
 			}
 		}
-*/		
+*/
 		
 		//long insidetime = System.nanoTime();
 		//System.out.print(nrdivisions + " - ");
@@ -650,6 +653,95 @@ public class FoldingProject {
 		
 		
 		
+
+		
+		
+/* syang: test(not use)		
+//syang11: START variant inside algorithm0
+				if (verbose) {
+					System.out.println("Cleaning memory...");
+				}
+
+				// assign null's to all inside-outside to enforce clearing of memory in
+				// case it didn't happen
+				Sector thissec1 = master.bottom;
+				thissec1.clearAllInside();
+				thissec1.clearAllOutside();
+				while (thissec1.next != null) {
+					thissec1 = thissec1.next;
+					thissec1.clearAllInside();
+					thissec1.clearAllOutside();
+				}
+				
+				
+				if (verbose) {
+					System.out.println("Doing syang's variant inside algorithm...");
+				}
+
+					act.setCurrentActivity("Applying grammar: syang's variant inside algorithm");
+
+				final AtomicInteger finishedinsidejobscount2 = new AtomicInteger(0); // counts
+				// how many inside jobs are done
+				master.CreateInsideJobChannel();
+				Progress insideAct2 = act.getChildProgress(0.32);
+				//final long gridstarttime = System.nanoTime();
+				while (master.unProcessedInsideSectors()) {
+					if(act.shouldStop()){
+						executor.shutDown();
+					}
+					act.checkStop();
+					CYKJob cYKJob = master.takeNextInsideJob(); // This call will block
+					// until a job is ready
+					final Progress jobAct = insideAct2.getChildProgress(1.0 / nrsectors);
+					// System.out.println(cYKJob.sectorid + " " + " 0 " +
+					// (System.nanoTime()-starttime));
+					final int sectorNumber = cYKJob.getSectorid();
+					executor.startExecution(cYKJob, new JobListener() {
+						public void jobFinished(JobResults result) {
+							master.setInsideResult(sectorNumber, result);
+							jobAct.setProgress(1.0);
+							// System.out.println(sectorNumber + " " + " 1 " +
+							// (System.nanoTime()-starttime));
+							finishedinsidejobscount2.incrementAndGet();
+						}
+
+						public void jobFinished(double[][] result) {
+						}// doesn't happen here
+
+						public void jobFinished(List<ResultBundle> result) {
+						} // doesn't happen here
+					});
+				}
+
+				// wait for last job to finish
+				while (finishedinsidejobscount2.get() < nrsectors) {
+					Thread.sleep(100);
+					if(act.shouldStop()){	
+						executor.shutDown();
+					}
+					act.checkStop();
+				}
+
+				insideAct.setProgress(1.0);
+
+				if(verbose){
+					System.out.println("Top inside: "
+						+ master.top.getInsideMatrixS().getProb(distance - 1,
+								length - 1 - master.top.pos[1]));
+				}
+				
+				
+				//syang: directly output the top inside value
+				System.out.println("For syang, variant top inside0: "
+						+ master.top.getInsideMatrixS().getProb(distance - 1,
+								length - 1 - master.top.pos[1]));
+//syang11: END variant inside algorithm0
+*/				
+		
+		
+		
+		
+		
 		
 		
 		
@@ -667,6 +759,9 @@ public class FoldingProject {
 	//	double gridtime2 = (outsidetime - outsidegridstarttime) * 1e-9;
 	//	System.out.println("TOTAL TIME ELAPSED IN OUTSIDE PART (DISTRIBUTED): "
 	//			+ gridtime2 + " seconds ");
+		
+		
+		
 
 		if (verbose) {
 			System.out.println("Setting basepairs...");
@@ -1016,6 +1111,7 @@ public class FoldingProject {
 		System.out.println("For syang, top inside S: "
 				+ topInsideS);
 */
+
 		
 		
 		if (verbose) {
@@ -1044,7 +1140,10 @@ public class FoldingProject {
 		}	
 		
 		
-		
+//		//syang: test
+//		System.out.println("For syang, after cleaning memory, Top inside: "
+//				+ master.top.getInsideMatrixS().getProb(distance - 1,
+//						length - 1 - master.top.pos[1]));
 
 		
 		
@@ -1105,7 +1204,20 @@ public class FoldingProject {
 //						length - 1 - master.top.pos[1]));
 		
 		PointRes topInsideS_syang = master.top.getInsideMatrixS().getProb(distance - 1, length - 1 - master.top.pos[1]);
-		System.out.println("Constraint top inside variable (i.e. motif-wise prob): " + topInsideS_syang + " = " + topInsideS_syang.toDouble());
+		System.out.println("Constraint top inside variable (i.e. motif-wise prob):\nAfter phylo: " + topInsideS_syang + " = " + topInsideS_syang.toDouble());
+		System.out.println("Before phylo: " + topInsideS);
+//		for(int i=0; i< master.top.dim; i++){
+//			for (int j=0; j< master.top.dim; j++){
+//				System.out.println("For syang, " + i + "," +j + ": "
+//						+ master.top.getInsideMatrixS().getProb(i,j));
+//			}
+//		}
+//		for(int i=0; i< master.bottom.dim; i++){
+//			for (int j=0; j< master.bottom.dim; j++){
+//				System.out.println("For syang, " + i + "," +j + ": "
+//						+ master.bottom.getInsideMatrixS().getProb(i,j));
+//			}
+//		}
 //syang11: END variant inside algorithm1
 
 		
@@ -1113,7 +1225,7 @@ public class FoldingProject {
 		
 
 		
-/*		
+/*	
 //syang11: START variant outside algorithm1
 		act.setCurrentActivity("Applying grammar: syang's variant outside algorithm");
 		
@@ -1283,18 +1395,18 @@ public class FoldingProject {
 		}
 		
 		
-//		//syang: directly output the top Expectation value
-//		System.out.println("For syang, Top expectation: "
-//				+ master.top.getExpectationMatrix().getProb(distance - 1,
-//						length - 1 - master.top.pos[1]));
-//		
-//		//syang: test
-//		for(int i=0; i< master.top.dim; i++){
-//			for (int j=0; j< master.top.dim; j++){
-//				System.out.println("For syang, " + i + "," +j + ": "
-//						+ master.top.getExpectationMatrix().getProb(i,j));
-//			}
-//		}
+		//syang: directly output the top Expectation value
+		System.out.println("For syang, Top expectation: "
+				+ master.top.getExpectationMatrix().getProb(distance - 1,
+						length - 1 - master.top.pos[1]));
+		
+		//syang: test
+		for(int i=0; i< master.top.dim; i++){
+			for (int j=0; j< master.top.dim; j++){
+				System.out.println("For syang, " + i + "," +j + ": "
+						+ master.top.getExpectationMatrix().getProb(i,j));
+			}
+		}
 		
 		
 		// System.out.print(nrdivisions + " - ");
@@ -1363,9 +1475,9 @@ public class FoldingProject {
 			tmp2.add(tmp);
 			
 			
-//			//syang: test
-//			System.out.println("For syang, when tracing back, expectationvalue: "
-//					+ expectationvalue);
+			//syang: test
+			System.out.println("For syang, when tracing back, expectationvalue: "
+					+ expectationvalue);
 			
 
 			if (expectationvalue.equals(tmp2)) {

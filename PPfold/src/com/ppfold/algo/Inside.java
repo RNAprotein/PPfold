@@ -43,13 +43,18 @@ public class Inside {
 			for (int c = 1; c <= cYKJob.getBelow().size() - 1; c++) {
 				partialS.incrementWithLS(cYKJob.getBelow().get(
 						cYKJob.getBelow().size() - c - 1), cYKJob
-						.getDiagbelow().get(c - 1), prob[0][0], tmp, tmp2);
+						.getDiagbelow().get(c - 1), prob[0][0], tmp, tmp2);				
 				partialF.incrementWithLS(cYKJob.getBelow().get(
 						cYKJob.getBelow().size() - c - 1), cYKJob
 						.getDiagbelow().get(c - 1), prob[2][1], tmp, tmp2);
 			}
 		}
 
+		
+		//syang: test
+		//System.out.println("For syang, prob[0][0]:"+prob[0][0]+", "+prob[1][0]+", "+prob[1][1]+", "+prob[2][1]+", "+prob[2][0]);
+		
+		
 		for (int t = 0; t < dim; t++) {
 			for (int s = 0; s <= dim - 1; s++) {
 				int i = dim - s - 1;
