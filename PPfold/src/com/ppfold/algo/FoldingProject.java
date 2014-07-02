@@ -127,6 +127,23 @@ public class FoldingProject {
 				}
 			}
 		}
+
+		/*		
+		//syang: probmatrix is basepairing prob matrix
+		for(int i=0; i<probmatrix.length;i++){
+			for(int j=0;j<probmatrix[0].length;j++){
+				System.out.print(probmatrix[i][j]+" ");
+			}
+			System.out.println();
+		}
+		System.out.println();
+		//probmatrix2 is null since diffbp is set to be false in PPfoldMain.java
+		for(int i=0; i<probmatrix2.length;i++){
+			for(int j=0;j<probmatrix2[0].length;j++){
+				System.out.print(probmatrix2[i][j]+" ");
+			}
+			System.out.println();
+		}*/
 		
 		if(extradata_list!=null){
 			System.out.println("Number of auxiliary data items: " + extradata_list.size());
@@ -160,6 +177,22 @@ public class FoldingProject {
 					probmatrix[i][i] *= extradata.getProbabilityGivenUnpaired(i);
 				}
 			}
+			/*
+			//syang: probmatrix is basepairing prob matrix
+			for(int i=0; i<probmatrix.length;i++){
+				for(int j=0;j<probmatrix[0].length;j++){
+					System.out.print(probmatrix[i][j]+" ");
+				}
+				System.out.println();
+			}
+			System.out.println();				
+			//probmatrix2 is null since diffbp is set to be false in PPfoldMain.java
+			for(int i=0; i<probmatrix2.length;i++){
+				for(int j=0;j<probmatrix2[0].length;j++){
+					System.out.print(probmatrix2[i][j]+" ");
+				}
+				System.out.println();
+			}*/
 		}
 		
 		if(diffbp&&extradata_list!=null){
@@ -172,9 +205,9 @@ public class FoldingProject {
 					}
 					probmatrix2[i][i] *= extradata.getProbabilityGivenUnpaired(i);
 				}
-			}
-			
-		}
+			}			
+		}		
+		
 		
 		//System.out.println("Time in phylogenetic part: " + (System.currentTimeMillis()-starttime));
 		// do not allow basepairs less than 4 nucleotides apart.
@@ -206,6 +239,7 @@ public class FoldingProject {
 		System.out.println("Folding...");
 		act.setCurrentActivity("Applying grammar");
 		
+		//syang: param is the initial scfg, rate matrix and so
 		//starttime = System.currentTimeMillis();
 		ResultBundle result = FoldingProject.calcSCFG(act
 				.getChildProgress(scfgpart), scfgjobsnr, param.getProb(),
@@ -240,7 +274,10 @@ public class FoldingProject {
 		
 
 		int length = probmatrix.length;
-
+		
+		//syang: userjobsnr==32 for gca-alignment_sy.fasta
+		//System.out.println("userjobsnr:"+userjobsnr);
+		
 		// First corrections of user input
 		if (userjobsnr > length) {
 			userjobsnr = length - 1;
@@ -253,14 +290,19 @@ public class FoldingProject {
 		int distance = length / userjobsnr + 1; // the +1 is to prevent
 		// generation of superfluous
 		// jobs
-
+		
+		//syang: distance==2 for gca-alignment_sy.fasta
+		//System.out.println("distance:"+distance);
+		
 		int firstrowspaces = length + 1;
 
 		int isthereextra = (firstrowspaces % distance != 0) ? 1 : 0; 
 		// triangle is compelete iff isthereextra = 0.
+		// syang: nrdivisions==32 for gca-alignment_sy.fasta
 		int nrdivisions = ((firstrowspaces - firstrowspaces % distance) / distance)
 				+ isthereextra;
 		// nrdivisions = how many jobs should there be in 1st row?
+		// syang: nrsectors==528 for gca-alignment_sy.fasta
 		int nrsectors = nrdivisions * (nrdivisions + 1) / 2; 
 		// total number of jobs in full triangle
 
@@ -291,9 +333,13 @@ public class FoldingProject {
 							+ nrsectors);
 		}
 
+		// syang: interestingpoints==1984 for gca-alignment_sy.fasta
 		int interestingpoints = length * length / 2;
+		// syang: totalpoints==2112 for gca-alignment_sy.fasta
 		int totalpoints = nrsectors * distance * distance;
+		// syang: extrapoints==128 for gca-alignment_sy.fasta
 		int extrapoints = totalpoints - interestingpoints;
+		// syang: fraction==6.451613 for gca-alignment_sy.fasta
 		float fraction = (float) extrapoints * 100 / interestingpoints;
 		if(verbose){
 			System.out.println("Divisions = " + nrdivisions
@@ -315,7 +361,7 @@ public class FoldingProject {
 		PointRes number = new PointRes(0, 0);
 		for (int i = 0; i < length; i++) {
 			for (int j = 0; j < length - i; j++) {
-				Sector sectoro = findSector(i, j, master.bottom);
+				Sector sectoro = findSector(i, j, master.bottom);	//syang: find which sector point(i,j) belongs to; Note the shape of the sector(Fig3 in paper)
 				int so = findPointST(i, j, sectoro, distance)[0];
 				int to = findPointST(i, j, sectoro, distance)[1];
 				number.setToDouble(probmatrix[i][i + j]);

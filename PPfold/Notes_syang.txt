@@ -10,8 +10,9 @@ step 2) will reset the base pairs probs
 the s and d prob setting part of 3) only change the scfg rule probs for terminals; the entropy calculation(EM algorithm) part of 3) actually does not change the scfg rule probs for terminal parts
 so where does the constraint add to scfg probs?
 
-probmatrix is getting from phylo part, then combined with constraints;probmatrix2 is probmatrix with diffbp==true
+probmatrix is getting from phylo part, then combined with constraints; probmatrix2 is probmatrix with diffbp==true (but set to be false)
 
+in the constraint file, the coordinates are based on the MSA with gaps (i.e. gaps are counted as positions too)
 
 - PPfold.main calls thread.start(), where thread is a PPfoldMain object
 

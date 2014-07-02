@@ -58,7 +58,7 @@ public class SectorGenerator {
 			}
 
 			if (firstSectorInRow == 0) { // we're in first row
-				sector[i].setDependency(null, null);
+				sector[i].setDependency(null, null);	//syang: set below and diagblow sectors
 				int above = i + divisions;
 				int jobtoside = i - 1;
 				int diagabove = -1;
@@ -110,9 +110,11 @@ public class SectorGenerator {
 			// set sector ranges, also preparation for sequence ranges
 			int mini = (columnnumber - 1) * distance;
 			int minj = rownumber * distance - 1;
-			sector[i].setPos(mini, minj);
+			sector[i].setPos(mini, minj);	//syang: position of bottom left
+			// corner; eg: sector[0]:(0,-1), sector[1]:(2,-1)..,sector[32]:(0,1)..,sector[63]:(0,3)..
 
 			if (mini > seqlength - 1) {
+				//syang: sector[i].seqlength is the height of the triangle
 				sector[i].seqlength = 0; // set sequence of corresponding job
 			} else {
 				int seqend = mini + minj + distance;
