@@ -28,7 +28,12 @@ public class Inside {
 		int mini = cYKJob.getMini();
 		int nts = cYKJob.getSeqlength(); // number of nucleotides available to
 		// the job
-
+		
+		//syang: debug based on gca-alignment_sy.fasta
+		//System.out.println("for sector "+cYKJob.sectorid+", dim: "+dim
+		//		+", mini: "+mini+", minj: "+minj+", nts: "+nts);
+		
+			
 		// X is container for data we want to find -- all results for the job
 		JobResults X = new JobResults(cYKJob.getN());
 		ResMatrix L = X.L;
@@ -51,8 +56,9 @@ public class Inside {
 		}
 
 		
-		//syang: test
-		//System.out.println("For syang, prob[0][0]:"+prob[0][0]+", "+prob[1][0]+", "+prob[1][1]+", "+prob[2][1]+", "+prob[2][0]);
+		//syang: prob[][] is 3*2 which stores SCFG grammars' probs
+		//System.out.println("For syang, prob[][] dims:"+prob.length+"*"+prob[0].length);
+		//System.out.println("For syang, prob[0][0]:"+prob[0][0]+", prob[0][1]:"+prob[0][1]+", prob[1][0]:"+prob[1][0]+", prob[1][1]"+prob[1][1]+", prob[2][1]"+prob[2][1]+", prob[2][0]"+prob[2][0]);
 		
 		
 		for (int t = 0; t < dim; t++) {

@@ -130,7 +130,7 @@ public class ResMatrix implements Serializable {
 	}
 
 	public void incrementWithLS(ResMatrix L, ResMatrix S, double prob,
-			PointRes tmp, PointRes tmp2) {		//syang:
+			PointRes tmp, PointRes tmp2) {		//syang: matrix computation for inside (L*S)
 		for (int s = 0; s < this.n; s++) {
 			for (int t = 0; t < this.n; t++) {
 				for (int ss = 0; ss < this.n; ss++) {

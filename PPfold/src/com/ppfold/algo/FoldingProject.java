@@ -592,18 +592,63 @@ public class FoldingProject {
 //				+ master.top.pos[1] + "; n:" 
 //				+ master.top.getInsideMatrixS().get_n() + "; dim:" 
 //				+ master.top.dim);
-/*		for(int i=0; i< master.top.dim; i++){
-			for (int j=0; j< master.top.dim; j++){
-				System.out.println("For syang, " + i + "," +j + ": "
-						+ master.top.getOutsideMatrixL().getProb(i,j));
+/*	for(int i=0; i< master.top.dim; i++){
+				for (int j=0; j< master.top.dim; j++){
+					System.out.println("For syang, " + i + "," +j + ": "
+							+ master.top.getOutsideMatrixL().getProb(i,j));
+				}
+			}
+		System.out.println("========");*/
+/*		for(int i=0; i< master.bottom.dim; i++){
+			for (int j=0; j< master.bottom.dim; j++){
+				System.out.println("For syang, bottomInsideS " + i + "," +j + ": "
+						+ master.bottom.getInsideMatrixS().getProb(i,j));
 			}
 		}
+		System.out.println("========");
 		for(int i=0; i< master.bottom.dim; i++){
 			for (int j=0; j< master.bottom.dim; j++){
-				System.out.println("For syang, " + i + "," +j + ": "
+				System.out.println("For syang, bottomOutsideL " + i + "," +j + ": "
 						+ master.bottom.getOutsideMatrixL().getProb(i,j));
 			}
-		}		
+		}	
+		
+		PointRes bottomOutsideL = master.bottom.getOutsideMatrixL().getProb(1,1);
+		bottomOutsideL.multiply(master.bottom.getInsideMatrixL().getProb(1,1));
+		PointRes bottomOutsideS = master.bottom.getOutsideMatrixS().getProb(1,1);
+		bottomOutsideS.multiply(master.bottom.getInsideMatrixS().getProb(1,1));
+		PointRes bottomOutsideF = master.bottom.getOutsideMatrixF().getProb(1,1);
+		bottomOutsideF.multiply(master.bottom.getInsideMatrixF().getProb(1,1));
+		
+		System.out.println("L: "+bottomOutsideL+"\nS: "+bottomOutsideS+"\nF: "+bottomOutsideF);
+		bottomOutsideL.add(bottomOutsideS);
+		bottomOutsideL.add(bottomOutsideF);
+		System.out.println("\nSum: "+bottomOutsideL);
+*/		
+/*		System.out.println("========\nFor syang:");
+		Sector bottomRight = master.top.below.below.below.below;//master.bottom.above.above.above.above.above.above.above.above.above.above;
+		//while(bottomRight.next.below.below.below.below.below.below.below.below.below.below.below==null){
+		while(bottomRight!=null){
+			PointRes bottomOutsideL = bottomRight.getOutsideMatrixL().getProb(1,1);
+			bottomOutsideL.multiply(bottomRight.getInsideMatrixL().getProb(1,1));
+			PointRes bottomOutsideS = bottomRight.getOutsideMatrixS().getProb(1,1);
+			bottomOutsideS.multiply(bottomRight.getInsideMatrixS().getProb(1,1));
+			PointRes bottomOutsideF = bottomRight.getOutsideMatrixF().getProb(1,1);
+			bottomOutsideF.multiply(bottomRight.getInsideMatrixF().getProb(1,1));
+			
+			System.out.println("\n#"+bottomRight.sectorid+"\nL: "+bottomOutsideL+"\nS: "+bottomOutsideS+"\nF: "+bottomOutsideF);
+			bottomOutsideL.add(bottomOutsideS);
+			bottomOutsideL.add(bottomOutsideF);
+			System.out.println("Sum: "+bottomOutsideL);
+			bottomRight = bottomRight.next;
+		}
+*/
+/*		for(int i=0; i< bottomRight.dim; i++){
+			for (int j=0; j< bottomRight.dim; j++){
+				System.out.println("For syang, " + i + "," +j + ": "
+						+ bottomRight.getOutsideMatrixL().getProb(i,j));
+			}
+		}
 */
 		
 		
@@ -806,7 +851,32 @@ public class FoldingProject {
 	//	System.out.println("TOTAL TIME ELAPSED IN OUTSIDE PART (DISTRIBUTED): "
 	//			+ gridtime2 + " seconds ");
 		
+
 		
+
+		
+		//syang: test the change of probmatrix[][], for gca-alignment_sy.fasta, constraint "P 20 0 3"
+		//MatrixTools.print(probmatrix);
+		for (int r = 0; r < 5; r++) {
+			for (int c = 0; c < probmatrix[0].length; c++) {
+				System.out.print("\t" + probmatrix[17+r][c]);
+			}
+			System.out.println();
+		}
+/*		//syang: test the change of basepairs
+		System.out.println("========\nFor syang:");
+		Sector testBottom=master.bottom;
+		while(testBottom!=null){
+			System.out.println("#"+testBottom.sectorid);
+			for(int i=0; i<testBottom.dim; i++){
+				for(int j=0;j<testBottom.dim;j++){
+					System.out.print("( "+i+","+j+" ): "+testBottom.getBasePairs().getProb(i,j)+";\t");
+				}
+			}
+			System.out.println();
+			testBottom=testBottom.next;
+		}
+*/		
 		
 
 		if (verbose) {
@@ -969,7 +1039,27 @@ public class FoldingProject {
 		}
 
 		
-		if(entropycalc){			//syang: EM algorithm
+/*		
+		//syang: test the change of probmatrix[][]
+		//MatrixTools.print(probmatrix);
+		//syang: test the change of basepairs
+		testBottom=master.bottom;
+		while(testBottom!=null){
+			System.out.println("#"+testBottom.sectorid);
+			for(int i=0; i<testBottom.dim; i++){
+				for(int j=0;j<testBottom.dim;j++){
+					System.out.print("( "+i+","+j+" ): "+testBottom.getBasePairs().getProb(i,j)+";\t");
+				}
+			}
+			System.out.println();
+			testBottom=testBottom.next;
+		}
+*/		
+		
+		
+
+		
+		if(entropycalc){			//syang: information entropy
 			for (int i = 0; i < length; i++) {
 				//Entropy for L->s
 				Sector sector = findSector(i,0, master.bottom);
@@ -1191,6 +1281,25 @@ public class FoldingProject {
 //				+ master.top.getInsideMatrixS().getProb(distance - 1,
 //						length - 1 - master.top.pos[1]));
 
+/*		
+		//syang: test the change of probmatrix[][]
+		//MatrixTools.print(probmatrix);
+		//syang: test the change of basepairs
+		testBottom=master.bottom;
+		while(testBottom!=null){
+			System.out.println("#"+testBottom.sectorid);
+			for(int i=0; i<testBottom.dim; i++){
+				for(int j=0;j<testBottom.dim;j++){
+					System.out.print("( "+i+","+j+" ): "+testBottom.getBasePairs().getProb(i,j)+";\t");
+				}
+			}
+			System.out.println();
+			testBottom=testBottom.next;
+		}	
+*/		
+		
+		
+		
 		
 		
 //syang11: START variant inside algorithm1

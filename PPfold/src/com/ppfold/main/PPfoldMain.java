@@ -48,7 +48,7 @@ public class PPfoldMain implements Runnable {
 	
 	static boolean createtree = true;
 	static boolean optimizetree = true;
-	static boolean verbose = false;	//syang: true;
+	static boolean verbose = true; //false;	//syang: true;
 	static boolean exportson = false; 
 	static boolean onlyCT = false;
 	static boolean specialname = false;
@@ -56,7 +56,7 @@ public class PPfoldMain implements Runnable {
 	static int phylodivisions = Runtime.getRuntime().availableProcessors()*2;
 	static int nrprocessors = Runtime.getRuntime().availableProcessors();
 	static int iterlimit = 10; 
-	static boolean entropycalc = true;
+	static boolean entropycalc = true;	//syang: false;
 	static String entropyString = null;
 	static boolean gui = false;
 	

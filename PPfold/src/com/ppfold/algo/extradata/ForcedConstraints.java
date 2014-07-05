@@ -276,15 +276,15 @@ public class ForcedConstraints implements ExtraData {
 
 	private float canPair(int i, int j){
 		//can't pair if i,j is prohibited, or i or j are forced to be single-stranded
-		if(data[i][j]==2||data[i][i]==3||data[j][j]==3){return Float.MIN_VALUE;}
+		if(data[i][j]==2||data[i][i]==3||data[j][j]==3){return 0.0f;}	//syang: replace all Float.MIN_VALUE with 0.0f  //{return Float.MIN_VALUE;}
 		//can't pair if i or j are forced to pair with something other than each other
-		if((data[i][i]==4||data[j][j]==4)&&data[i][j]!=1){return Float.MIN_VALUE;}
+		if((data[i][i]==4||data[j][j]==4)&&data[i][j]!=1){return 0.0f;}	//syang: replace all Float.MIN_VALUE with 0.0f  //{return Float.MIN_VALUE;}
 		return 1f; 
 	}
 
 	private float canSs(int i){
 		if(data[i][i]!=4&&data[i][i]!=6){return 1f;}
-		else{return Float.MIN_VALUE;}
+		else{return 0.0f;}	//syang: replace all Float.MIN_VALUE with 0.0f  //{return Float.MIN_VALUE;}
 	}
 
 	/**
