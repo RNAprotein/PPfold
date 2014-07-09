@@ -10,9 +10,38 @@ step 2) will reset the base pairs probs
 the s and d prob setting part of 3) only change the scfg rule probs for terminals; the entropy calculation(EM algorithm) part of 3) actually does not change the scfg rule probs for terminal parts
 so where does the constraint add to scfg probs?
 
-probmatrix is getting from phylo part, then combined with constraints; probmatrix2 is probmatrix with diffbp==true (but set to be false)
+probmatrix is getting from createPhyloProb() part, then combined with constraints; probmatrix2 is probmatrix with diffbp==true (but set to be false)
 
 in the constraint file, the coordinates are based on the MSA with gaps (i.e. gaps are counted as positions too)
+
+Debug:
+1.
+	fatal error occured when running gca-alignment_few_sy.fasta and "F 1 0 2"
+	warning at (prob>1):
+	System.err.println("Warning: Pd(" + i + ", " + j +
+							") = " + number + " > 1! (Using 1...)" );
+
+2.
+	variables in inside.L matrix first row (gca-alignment_few_sy.fasta):
+	
+	manually		ppfold
+	0.32572226849  0.3314111
+	0.18954937824  0.1965999125
+	0.13509310442  0.1426882125
+	0.24423824883  0.2507419
+	
+	the difference is because of in "manually", the calculation is done by: P(L->s)*P(s->A|U|G|C),
+	P(L->s) is Grammar 1-P(L->dFd), and P(s->A|U|G|C) is the single group probabilities (not the reduced
+	probabilites, they are overall probabilities in the original paper Table1), both in matrix.in file;
+	while in "ppfold", P(s->A|U|G|C) first mutiplies a evolutionary factor in createPhyloProb(), the result
+	stores in probmatrix[][], then do the above mutiplication.
+	
+	
+	
+
+- matrices.in
+Reduced probabilities are the "overall A C G U probabilities" in the paper (Table1)
+
 
 - PPfold.main calls thread.start(), where thread is a PPfoldMain object
 

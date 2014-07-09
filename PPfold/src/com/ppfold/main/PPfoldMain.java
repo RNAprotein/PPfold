@@ -56,7 +56,7 @@ public class PPfoldMain implements Runnable {
 	static int phylodivisions = Runtime.getRuntime().availableProcessors()*2;
 	static int nrprocessors = Runtime.getRuntime().availableProcessors();
 	static int iterlimit = 10; 
-	static boolean entropycalc = true;	//syang: false;
+	static boolean entropycalc = false;	//true;	//syang: false;
 	static String entropyString = null;
 	static boolean gui = false;
 	

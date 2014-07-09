@@ -116,6 +116,7 @@ public class FoldingProject {
 		//If there are extra data, multiply probmatrix with the relevant values
 		//syang: probmatrix[63][63] for gca-alignment_sy.fasta, so probmatrix.length==probmatrix[0].length==68-5, i.e.
 		//remove columns where there are gaps in them
+		//for gca-alignment_few_sy.fasta, probmatrix[7][7]
 		//System.out.println("\nsyang debug: "+probmatrix.length + " "+probmatrix[0].length);
 		
 		double[][] probmatrix2 = null;
@@ -275,10 +276,11 @@ public class FoldingProject {
 
 		int length = probmatrix.length;
 		
-		//syang: userjobsnr==32 for gca-alignment_sy.fasta
+		//syang: userjobsnr==32 for gca-alignment_sy.fasta and gca-alignment_few_sy.fasta
 		//System.out.println("userjobsnr:"+userjobsnr);
 		
 		// First corrections of user input
+		//syang: userjobsnr corrected to 6 for gca-alignment_few_sy.fasta
 		if (userjobsnr > length) {
 			userjobsnr = length - 1;
 		} else if (userjobsnr < 1) {
@@ -291,18 +293,18 @@ public class FoldingProject {
 		// generation of superfluous
 		// jobs
 		
-		//syang: distance==2 for gca-alignment_sy.fasta
+		//syang: distance==2 for gca-alignment_sy.fasta and gca-alignment_few_sy.fasta
 		//System.out.println("distance:"+distance);
 		
 		int firstrowspaces = length + 1;
 
 		int isthereextra = (firstrowspaces % distance != 0) ? 1 : 0; 
 		// triangle is compelete iff isthereextra = 0.
-		// syang: nrdivisions==32 for gca-alignment_sy.fasta
+		// syang: nrdivisions==32 for gca-alignment_sy.fasta; 4 for gca-alignment_few_sy.fasta
 		int nrdivisions = ((firstrowspaces - firstrowspaces % distance) / distance)
 				+ isthereextra;
 		// nrdivisions = how many jobs should there be in 1st row?
-		// syang: nrsectors==528 for gca-alignment_sy.fasta
+		// syang: nrsectors==528 for gca-alignment_sy.fasta; 10 for gca-alignment_few_sy.fasta
 		int nrsectors = nrdivisions * (nrdivisions + 1) / 2; 
 		// total number of jobs in full triangle
 
@@ -318,28 +320,28 @@ public class FoldingProject {
 
 		if (verbose) {
 			System.out.println("User wish for number of divisions: "
-					+ userjobsnr);
+					+ userjobsnr);		//syang: 6 for gca-alignment_few_sy.fasta
 			System.out
 					.println("Number of sectors in inside-outside calculations: "
-							+ nrsectors);
+							+ nrsectors);		
 			System.out
 					.println("Distance for inside-outside has been calculated as: "
 							+ distance);
 			System.out
 					.println("Corrected number of jobs in first row of inside-outside: "
-							+ nrdivisions);
+							+ nrdivisions);		
 			System.out
 					.println("Total number of inside-outside jobs to generate: "
 							+ nrsectors);
 		}
 
-		// syang: interestingpoints==1984 for gca-alignment_sy.fasta
+		// syang: interestingpoints==1984 for gca-alignment_sy.fasta; 24 for gca-alignment_few_sy.fasta
 		int interestingpoints = length * length / 2;
-		// syang: totalpoints==2112 for gca-alignment_sy.fasta
+		// syang: totalpoints==2112 for gca-alignment_sy.fasta; 40 for gca-alignment_few_sy.fasta
 		int totalpoints = nrsectors * distance * distance;
-		// syang: extrapoints==128 for gca-alignment_sy.fasta
+		// syang: extrapoints==128 for gca-alignment_sy.fasta; 16 for gca-alignment_few_sy.fasta
 		int extrapoints = totalpoints - interestingpoints;
-		// syang: fraction==6.451613 for gca-alignment_sy.fasta
+		// syang: fraction==6.451613% for gca-alignment_sy.fasta; 66.666664% for gca-alignment_few_sy.fasta
 		float fraction = (float) extrapoints * 100 / interestingpoints;
 		if(verbose){
 			System.out.println("Divisions = " + nrdivisions
@@ -381,6 +383,7 @@ public class FoldingProject {
 				}
 			}
 		}
+		
 		
 		
 		if (verbose) {
@@ -450,7 +453,15 @@ public class FoldingProject {
 						length - 1 - master.top.pos[1]));
 		}
 		
-		
+/*		//syang: test the change of prob[][]
+		System.out.println("for syang, test the change of prob");
+		for(int i=0;i<prob.length;i++){
+			for(int j=0;j<prob[0].length;j++){
+				System.out.print("i,j: "+prob[i][j]+", ");
+			}
+		}
+		System.out.println();
+*/		
 		//syang: directly output the top inside value
 //		System.out.println("For syang, Top inside: "
 //				+ master.top.getInsideMatrixS().getProb(distance - 1,
@@ -469,6 +480,65 @@ public class FoldingProject {
 			}
 		}
 */
+
+/*		//syang: print the entire inside matrix
+ * 		System.out.println("========\nFor syang: inside");
+		Sector bottomRight = master.bottom;
+		PointRes matSy[][]=new PointRes[7][7];
+		while(bottomRight!=null){
+			System.out.println("#"+bottomRight.sectorid);
+			for(int i=0;i<bottomRight.dim;i++){
+				for(int j=0;j<bottomRight.dim;j++){
+					System.out.print("("+i+","+j+")="+bottomRight.getInsideMatrixF().getProb(i,j)+"\t");
+					
+					int x=distance+bottomRight.pos[0]-1-i;
+					int y=j-x+bottomRight.pos[0]+bottomRight.pos[1];
+					if(x>=0 && y>=0){
+						matSy[y][x]=bottomRight.getInsideMatrixF().getProb(i,j);
+					}
+				}
+				System.out.println();
+			}
+			
+			bottomRight=bottomRight.next;
+		}
+		
+		for(int i=matSy.length-1;i>=0;i--){
+			for(int j=0;j<matSy.length-i;j++){
+				System.out.print(matSy[i][j]+"\t");
+			}
+			System.out.println();
+		}
+*/
+/*		//syang: print the entire basePair matrix
+		System.out.println("========\nFor syang: inside");
+		Sector bottomRight = master.bottom;
+		PointRes matSy[][]=new PointRes[7][7];
+		while(bottomRight!=null){
+			System.out.println("#"+bottomRight.sectorid);
+			for(int i=0;i<bottomRight.dim;i++){
+				for(int j=0;j<bottomRight.dim;j++){
+					System.out.print("("+i+","+j+")="+bottomRight.getBasePairs().getProb(i,j)+"\t");
+					
+					int x=distance+bottomRight.pos[0]-1-i;
+					int y=j-x+bottomRight.pos[0]+bottomRight.pos[1];
+					if(x>=0 && y>=0){
+						matSy[y][x]=bottomRight.getBasePairs().getProb(i,j);
+					}
+				}
+				System.out.println();
+			}
+			
+			bottomRight=bottomRight.next;
+		}
+		
+		for(int i=matSy.length-1;i>=0;i--){
+			for(int j=0;j<matSy.length-i;j++){
+				System.out.print(matSy[i][j]+"\t");
+			}
+			System.out.println();
+		}
+*/		
 		
 		//long insidetime = System.nanoTime();
 		//System.out.print(nrdivisions + " - ");
@@ -642,7 +712,7 @@ public class FoldingProject {
 			System.out.println("Sum: "+bottomOutsideL);
 			bottomRight = bottomRight.next;
 		}
-*/
+*/		
 /*		for(int i=0; i< bottomRight.dim; i++){
 			for (int j=0; j< bottomRight.dim; j++){
 				System.out.println("For syang, " + i + "," +j + ": "
@@ -650,9 +720,69 @@ public class FoldingProject {
 			}
 		}
 */
+/*		//syang: print the entire outside matrix
+  		System.out.println("========\nFor syang: outside");
+		Sector bottomRight = master.bottom;
+		PointRes matSy[][]=new PointRes[7][7];
+		while(bottomRight!=null){
+			System.out.println("#"+bottomRight.sectorid);
+			for(int i=0;i<bottomRight.dim;i++){
+				for(int j=0;j<bottomRight.dim;j++){
+					System.out.print("("+i+","+j+")="+bottomRight.getOutsideMatrixS().getProb(i,j)+"\t");
+					
+					int x=distance+bottomRight.pos[0]-1-i;
+					int y=j-x+bottomRight.pos[0]+bottomRight.pos[1];
+					if(x>=0 && y>=0){
+						matSy[y][x]=bottomRight.getOutsideMatrixS().getProb(i,j);
+					}
+				}
+				System.out.println();
+			}
+			
+			bottomRight=bottomRight.next;
+		}
 		
+		for(int i=matSy.length-1;i>=0;i--){
+			for(int j=0;j<matSy.length-i;j++){
+				System.out.print(matSy[i][j]+"\t");
+			}
+			System.out.println();
+		}
 		
-
+*/
+/*		//syang: print the entire basePair matrix
+		System.out.println("========\nFor syang: inside");
+		Sector bottomRight4 = master.bottom;
+		PointRes matSy4[][]=new PointRes[7][7];
+		while(bottomRight4!=null){
+			System.out.println("#"+bottomRight4.sectorid);
+			for(int i=0;i<bottomRight4.dim;i++){
+				for(int j=0;j<bottomRight4.dim;j++){
+					System.out.print("("+i+","+j+")="+bottomRight4.getBasePairs().getProb(i,j)+"\t");
+					
+					int x=distance+bottomRight4.pos[0]-1-i;
+					int y=j-x+bottomRight4.pos[0]+bottomRight4.pos[1];
+					if(x>=0 && y>=0){
+						matSy4[y][x]=bottomRight4.getBasePairs().getProb(i,j);
+					}
+				}
+				System.out.println();
+			}
+			
+			bottomRight4=bottomRight4.next;
+		}
+		
+		for(int i=matSy4.length-1;i>=0;i--){
+			for(int j=0;j<matSy4.length-i;j++){
+				System.out.print(matSy4[i][j]+"\t");
+			}
+			System.out.println();
+		}
+*/				
+				
+				
+				
+		
 		if (verbose) {
 			System.out.println("Done. (time: "
 					+ (System.nanoTime() - starttime) * 1e-9 + " s)");
@@ -857,12 +987,13 @@ public class FoldingProject {
 		
 		//syang: test the change of probmatrix[][], for gca-alignment_sy.fasta, constraint "P 20 0 3"
 		//MatrixTools.print(probmatrix);
-		for (int r = 0; r < 5; r++) {
+/*		for (int r = 0; r < 5; r++) {
 			for (int c = 0; c < probmatrix[0].length; c++) {
 				System.out.print("\t" + probmatrix[17+r][c]);
 			}
 			System.out.println();
 		}
+*/
 /*		//syang: test the change of basepairs
 		System.out.println("========\nFor syang:");
 		Sector testBottom=master.bottom;
@@ -1055,6 +1186,40 @@ public class FoldingProject {
 			testBottom=testBottom.next;
 		}
 */		
+		
+/*		//syang: print the entire basePair matrix
+		System.out.println("========\nFor syang: inside");
+		Sector bottomRight3 = master.bottom;
+		PointRes matSy3[][]=new PointRes[7][7];
+		while(bottomRight3!=null){
+			System.out.println("#"+bottomRight3.sectorid);
+			for(int i=0;i<bottomRight3.dim;i++){
+				for(int j=0;j<bottomRight3.dim;j++){
+					System.out.print("("+i+","+j+")="+bottomRight3.getBasePairs().getProb(i,j)+"\t");
+					
+					int x=distance+bottomRight3.pos[0]-1-i;
+					int y=j-x+bottomRight3.pos[0]+bottomRight3.pos[1];
+					if(x>=0 && y>=0){
+						matSy3[y][x]=bottomRight3.getBasePairs().getProb(i,j);
+					}
+				}
+				System.out.println();
+			}
+			
+			bottomRight3=bottomRight3.next;
+		}
+		
+		for(int i=matSy3.length-1;i>=0;i--){
+			for(int j=0;j<matSy3.length-i;j++){
+				System.out.print(matSy3[i][j]+"\t");
+			}
+			System.out.println();
+		}
+*/		
+		
+	
+		
+		
 		
 		
 
@@ -1297,9 +1462,45 @@ public class FoldingProject {
 			testBottom=testBottom.next;
 		}	
 */		
+/*		//syang: test the change of prob[][]
+		System.out.println("for syang, test the change of prob");
+		for(int i=0;i<prob.length;i++){
+			for(int j=0;j<prob[0].length;j++){
+				System.out.print(i+","+j+": "+prob[i][j]+", ");
+			}
+		}
+		System.out.println();
+*/	
 		
+/*		//syang: print the entire basePair matrix
+		System.out.println("========\nFor syang: inside");
+		Sector bottomRight2 = master.bottom;
+		PointRes matSy2[][]=new PointRes[7][7];
+		while(bottomRight2!=null){
+			System.out.println("#"+bottomRight2.sectorid);
+			for(int i=0;i<bottomRight2.dim;i++){
+				for(int j=0;j<bottomRight2.dim;j++){
+					System.out.print("("+i+","+j+")="+bottomRight2.getBasePairs().getProb(i,j)+"\t");
+					
+					int x=distance+bottomRight2.pos[0]-1-i;
+					int y=j-x+bottomRight2.pos[0]+bottomRight2.pos[1];
+					if(x>=0 && y>=0){
+						matSy2[y][x]=bottomRight2.getBasePairs().getProb(i,j);
+					}
+				}
+				System.out.println();
+			}
+			
+			bottomRight2=bottomRight2.next;
+		}
 		
-		
+		for(int i=matSy2.length-1;i>=0;i--){
+			for(int j=0;j<matSy2.length-i;j++){
+				System.out.print(matSy2[i][j]+"\t");
+			}
+			System.out.println();
+		}
+*/		
 		
 		
 //syang11: START variant inside algorithm1
@@ -1375,9 +1576,65 @@ public class FoldingProject {
 //		}
 //syang11: END variant inside algorithm1
 
+/*		//syang: print the entire inside matrix		
+		System.out.println("========\nFor syang: inside");
+		Sector bottomRight1 = master.bottom;
+		PointRes matSy1[][]=new PointRes[7][7];
+		while(bottomRight1!=null){
+			System.out.println("#"+bottomRight1.sectorid);
+			for(int i=0;i<bottomRight1.dim;i++){
+				for(int j=0;j<bottomRight1.dim;j++){
+					System.out.print("("+i+","+j+")="+bottomRight1.getInsideMatrixF().getProb(i,j)+"\t");
+					
+					int x=distance+bottomRight1.pos[0]-1-i;
+					int y=j-x+bottomRight1.pos[0]+bottomRight1.pos[1];
+					if(x>=0 && y>=0){
+						matSy1[y][x]=bottomRight1.getInsideMatrixF().getProb(i,j);
+					}
+				}
+				System.out.println();
+			}
+			
+			bottomRight1=bottomRight1.next;
+		}
 		
+		for(int i=matSy1.length-1;i>=0;i--){
+			for(int j=0;j<matSy1.length-i;j++){
+				System.out.print(matSy1[i][j]+"\t");
+			}
+			System.out.println();
+		}
+*/		
 		
+/*		//syang: print the entire basePair matrix
+		System.out.println("========\nFor syang: inside");
+		Sector bottomRight1 = master.bottom;
+		PointRes matSy1[][]=new PointRes[7][7];
+		while(bottomRight1!=null){
+			System.out.println("#"+bottomRight1.sectorid);
+			for(int i=0;i<bottomRight1.dim;i++){
+				for(int j=0;j<bottomRight1.dim;j++){
+					System.out.print("("+i+","+j+")="+bottomRight1.getBasePairs().getProb(i,j)+"\t");
+					
+					int x=distance+bottomRight1.pos[0]-1-i;
+					int y=j-x+bottomRight1.pos[0]+bottomRight1.pos[1];
+					if(x>=0 && y>=0){
+						matSy1[y][x]=bottomRight1.getBasePairs().getProb(i,j);
+					}
+				}
+				System.out.println();
+			}
+			
+			bottomRight1=bottomRight1.next;
+		}
 		
+		for(int i=matSy1.length-1;i>=0;i--){
+			for(int j=0;j<matSy1.length-i;j++){
+				System.out.print(matSy1[i][j]+"\t");
+			}
+			System.out.println();
+		}
+*/		
 
 		
 /*	

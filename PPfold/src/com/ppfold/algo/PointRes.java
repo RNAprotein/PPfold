@@ -95,6 +95,7 @@ public class PointRes implements Serializable {
 		int mantissaexp = ((bits >> 23) & 0xFF) - 127;
 		exponent += mantissaexp;
 		// set exp = 1 and then convert to double:
+		//syang: BFFFFFFF=000000000000000000000  3f800000=111111100000000000000000000000
 		fraction = Float.intBitsToFloat((bits & 0xBFFFFFFF) | 0x3f800000);
 		return this;
 	}
@@ -261,6 +262,7 @@ public class PointRes implements Serializable {
 	// exponent must be between -126 and 127
 	private static float setExponent(float d, int expin) {
 		int bits = Float.floatToRawIntBits(d);
+		// syang: 0x807fffff = 10000000011111111111111111111111
 		bits = bits & 0x807fffff; // exp bits are 0
 		bits = bits | ((expin + 127) << 23);
 		return Float.intBitsToFloat(bits);
