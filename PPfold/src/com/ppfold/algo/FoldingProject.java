@@ -290,7 +290,7 @@ public class FoldingProject {
 		System.out.println("Top inside S variable:"+
 		"\nbefore constraint: "+topInsideS+"\nafter constraint: " +topInsideS_constraint);
 		topInsideS_constraint.divide(topInsideS);
-		System.out.println("The quotient (i.e. motif-wise prob):"+topInsideS_constraint+
+		System.out.println("The motif-wise prob (i.e. quotient):"+topInsideS_constraint+
 				" = "+topInsideS_constraint.toFloat());
 		
 		
