@@ -823,7 +823,7 @@ public class FoldingProject {
 		
 */
 /*		//syang: print the entire basePair matrix
-		System.out.println("========\nFor syang: inside");
+		System.out.println("========\nFor syang: basePair");
 		Sector bottomRight4 = master.bottom;
 		PointRes matSy4[][]=new PointRes[7][7];
 		while(bottomRight4!=null){
