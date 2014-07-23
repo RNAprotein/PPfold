@@ -447,6 +447,8 @@ public class FoldingProject {
 		}
 
 
+		
+		// syang: 1. fill inside matrices
 		act.setCurrentActivity("Applying grammar: inside algorithm");
 		
 		if (verbose) {
@@ -609,8 +611,8 @@ public class FoldingProject {
 		}
 
 		
-		//syang: START of commenting out outside algorithm
-		/*
+
+		// syang: 2. fill outside matrices
 		act.setCurrentActivity("Applying grammar: outside algorithm");
 		
 		if (verbose) {
@@ -710,7 +712,7 @@ public class FoldingProject {
 					+ ((Runtime.getRuntime().totalMemory() - Runtime
 							.getRuntime().freeMemory()) / 1048576) + " MB ");
 		}
-*/	//syang: END of commenting out outside algorithm
+
 		
 		
 		
@@ -851,9 +853,420 @@ public class FoldingProject {
 */				
 		
 				
+
+		// syang: 3. set basepair and single base matrices
+		if (verbose) {
+			System.out.println("Setting basepairs...");
+		}
+
+		act.setCurrentActivity("Applying grammar: setting basepairs");
+
+		number.setToFloat(0);
+		PointRes number2 = new PointRes(0, 0);
+
+		//Expected rule frequencies
+		PointRes EfLdFd = new PointRes(0,0);
+		PointRes EfFdFd = new PointRes(0,0);
+		
+		PointRes topInsideS = new PointRes(0,0);
+		topInsideS.copyFrom(master.top.getInsideMatrixS().fetchProb(
+				distance - 1, length - 1 - master.top.pos[1], tmp));		
+		
+		PointRes entropyLikelihood = new PointRes(0,0); 
+		
+		//MatrixTools.print(probmatrix);
+		// calculate basepair probabilities & basepair rule entropies
+		for (int i = 0; i < length; i++) {
+			for (int j = 1; j < length - i; j++) {
+				Sector sectoro = findSector(i, j, master.bottom);
+				Sector sectori = findSector(i + 1, j - 2, master.bottom);
+				int so = findPointST(i, j, sectoro, distance)[0];
+				int to = findPointST(i, j, sectoro, distance)[1];
+				int si = findPointST(i + 1, j - 2, sectori, distance)[0];
+				int ti = findPointST(i + 1, j - 2, sectori, distance)[1];
+				
+				//L->dFd
+				number.copyFrom(sectoro.getOutsideMatrixL().fetchProb(so, to,
+						tmp));
+				number.multiply(sectori.getInsideMatrixF().fetchProb(si, ti,
+						tmp), prob[1][0]);
+				if(diffbp){
+					number.multiply(probmatrix2[i][i+j]);
+				}else{
+					number.multiply(probmatrix[i][i+j]);
+				}
+				EfLdFd.add(number);
+				number.divide(topInsideS);
+				
+				//F->dFd
+				number2.copyFrom(sectoro.getOutsideMatrixF().fetchProb(so, to,
+						tmp));
+				number2.multiply(sectori.getInsideMatrixF().fetchProb(si, ti,
+						tmp), prob[2][0]);
+				number2.multiply(probmatrix[i][i+j]);
+				EfFdFd.add(number2);
+				number2.divide(topInsideS);
+				
+				//Sum of expectation of the two rules is expectation of basepairing rule
+				number.add(number2);
+				
+				sectoro.setBasePairs(so, to, number);
+				if(number.toFloat()>1){
+					if(verbose){
+						System.err.println("Warning: Pd(" + i + ", " + j +
+							") = " + number + " > 1! (Using 1...)" );
+					}
+					number.setToFloat(1);
+				}
+				if(probmatrix[i][i+j]!=0){	//syang: for entropy
+					number.multiply(log2(1/probmatrix[i][i+j]));
+					//System.out.println(i + ", " + (i+j) + " pair entropy: " + number);
+					entropyLikelihood.add(number);
+				}
+				
+				//System.out.print(number.toFloat() + " ");
+				//System.out.format("%16.8e", number.toDouble());
+			}
+		}
+		
+	
+		if (verbose) { 
+			System.out.println("Done. (time: "
+					+ (System.nanoTime() - starttime) * 1e-9 + " s)");
+			System.out.println("Memory allocated: "
+					+ (Runtime.getRuntime().totalMemory() / 1048576) + " MB");
+			System.out.println("Memory used: "
+					+ ((Runtime.getRuntime().totalMemory() - Runtime
+							.getRuntime().freeMemory()) / 1048576) + " MB ");
+		}
 		
 
-		PointRes topInsideS = new PointRes(0,0);
+		
+
+		if (verbose) {
+			System.out.println("Calculating single base probabilities...");
+		}
+
+		// calculate single basepairing
+		final PointRes one = new PointRes(1);
+		final PointRes minusone = new PointRes(-1);
+		final PointRes zero = new PointRes(0);
+
+		for (int i = 0; i < length; i++) {
+			PointRes singlebaseprobpoint = new PointRes(0);
+			for (int k = 1; k < length - i; k++) { // pairs to the right
+				Sector basepairsector = findSector(i, k, master.bottom);
+				int[] basepairpoint = findPointST(i, k, basepairsector,
+						distance);
+				singlebaseprobpoint.add(basepairsector.getMatrixBpVal(
+						basepairpoint[0], basepairpoint[1], tmp));
+			}
+
+			for (int k = 0; k < i; k++) { // pairs to the left
+				Sector basepairsector = findSector(k, i - k, master.bottom);
+				int[] basepairpoint = findPointST(k, i - k, basepairsector,
+						distance);
+				singlebaseprobpoint.add(basepairsector.getMatrixBpVal(
+						basepairpoint[0], basepairpoint[1], tmp));
+			}
+
+			tmp.copyFrom(minusone);
+			singlebaseprobpoint.multiply(tmp);
+			tmp.copyFrom(one);
+			tmp.add(singlebaseprobpoint);
+			singlebaseprobpoint.copyFrom(tmp);
+
+			if (singlebaseprobpoint.isSignificantlyLessThanZero()) {
+				System.err.println("Illegal Ps(" + i + ") = "
+						+ singlebaseprobpoint
+						+ ": (significantly less than zero); using 0");
+				singlebaseprobpoint.setToFloat(0);
+			}
+
+			Sector sec = findSector(i, 0, master.bottom);
+			int[] sbasepoint = findPointST(i, 0, sec, distance);
+			sec.setBasePairs(sbasepoint[0], sbasepoint[1], singlebaseprobpoint);
+			if(probmatrix[i][i]!=0){	//syang: for entropy
+				singlebaseprobpoint.multiply(log2(1/probmatrix[i][i]));
+				entropyLikelihood.add(singlebaseprobpoint);
+			}
+			//System.out.format("%16.8e", singlebaseprobpoint.toDouble());
+		}
+
+		if (verbose) {
+			System.out.println("Done. (time: "
+					+ (System.nanoTime() - starttime) * 1e-9 + " s)");
+			System.out.println("Memory allocated: "
+					+ (Runtime.getRuntime().totalMemory() / 1048576) + " MB");
+			System.out.println("Memory used: "
+					+ ((Runtime.getRuntime().totalMemory() - Runtime
+							.getRuntime().freeMemory()) / 1048576) + " MB ");
+		}
+
+
+		
+
+		// syang: 4. EM retrain SCFG rule probabilities
+		//Expected rule frequencies
+		PointRes EfSL = new PointRes(0,0);
+		PointRes EfSLS = new PointRes(0,0);
+		PointRes EfLs = new PointRes(0,0);
+		PointRes EfFLS = new PointRes(0,0);
+		//Expected nonterminal frequencies (for probability reestimation)
+		PointRes EfS = new PointRes(0,0);
+		PointRes EfL = new PointRes(0,0);
+		PointRes EfF = new PointRes(0,0);
+		
+		PointRes insideval = new PointRes(0,0);
+		PointRes outsideval = new PointRes(0,0);
+
+		if(entropycalc){			//syang: information entropy
+			for (int i = 0; i < length; i++) {
+				//Entropy for L->s
+				Sector sector = findSector(i,0, master.bottom);
+				int s = findPointST(i,0,sector,distance)[0];
+				int t = findPointST(i,0,sector,distance)[1];
+				number.setToDouble(probmatrix[i][i]);
+				outsideval.copyFrom(sector.getOutsideMatrixL().fetchProb(s, t, tmp));
+				number.multiply(outsideval);
+				number.multiply(prob[1][1]);
+				//number.divide(topInsideS);
+				EfLs.add(number);
+				
+				for (int j = 0; j < length - i; j++) {
+					Sector sectoro = findSector(i, j, master.bottom);
+					int so = findPointST(i, j, sectoro, distance)[0];
+					int to = findPointST(i, j, sectoro, distance)[1];
+					
+					insideval.copyFrom(sectoro.getInsideMatrixS().fetchProb(so,to,tmp));
+					outsideval.copyFrom(sectoro.getOutsideMatrixS().fetchProb(so, to,tmp));
+					outsideval.multiply(insideval);
+					EfS.add(outsideval);	//syang: frequency of S
+					insideval.copyFrom(sectoro.getInsideMatrixL().fetchProb(so,to,tmp));
+					outsideval.copyFrom(sectoro.getOutsideMatrixL().fetchProb(so, to,tmp));
+					outsideval.multiply(insideval);
+					EfL.add(outsideval);	//syang: frequency of L
+					insideval.copyFrom(sectoro.getInsideMatrixF().fetchProb(so,to,tmp));
+					outsideval.copyFrom(sectoro.getOutsideMatrixF().fetchProb(so, to,tmp));
+					outsideval.multiply(insideval);
+					EfF.add(outsideval);	//syang: frequency of F
+					
+					insideval.copyFrom(sectoro.getInsideMatrixL().fetchProb(so,to,tmp));
+					outsideval.copyFrom(sectoro.getOutsideMatrixS().fetchProb(so, to,tmp));
+					outsideval.multiply(insideval);
+					outsideval.multiply(prob[0][1]);
+					//outsideval.divide(topInsideS);
+					EfSL.add(outsideval);	//syang: frequency of S->L
+				}
+			}
+
+// calculate bifurcation probabilities NOTE O(n^3) complexity		
+		/*PointRes insidevalue1 = new PointRes(0,0);
+			PointRes insidevalue2 = new PointRes(0,0);
+			for (int i = 0; i < length; i++) {	
+				for (int j = 0; j < length - i; j++) {
+					for(int k = 0; k<j; k++){
+						//i+k is between i and i+j.
+						Sector sectoro = findSector(i, j, master.bottom);
+						Sector sectori1 = findSector(i, k, master.bottom);
+						Sector sectori2 = findSector(i+k+1, j-k-1, master.bottom);
+						//System.out.println(i + " " + (i+k) + " " + (i+j));
+						//Outside region (i,i+j)  
+						int so = findPointST(i, j, sectoro, distance)[0];
+						int to = findPointST(i, j, sectoro, distance)[1];
+						//Inside region (i,i+k)
+						int si1 = findPointST(i, k, sectori1, distance)[0];
+						int ti1 = findPointST(i, k, sectori1, distance)[1];
+						//Inside region (i+k+1, j)
+						int si2 = findPointST(i+k+1, j-k-1, sectori2, distance)[0];
+						int ti2 = findPointST(i+k+1, j-k-1, sectori2, distance)[1];
+						//Common to both bifurcation rules 
+						insidevalue1.copyFrom(sectori1.getInsideMatrixL().fetchProb(si1,ti1,tmp));
+						insidevalue2.copyFrom(sectori2.getInsideMatrixS().fetchProb(si2,ti2,tmp));					
+						//S->LS: prob[0][0]
+						number.copyFrom(sectoro.getOutsideMatrixS().fetchProb(so, to,	tmp));
+						number.multiply(insidevalue1);
+						number.multiply(insidevalue2);
+						number.multiply(prob[0][0]);
+						//number.divide(topInsideS);
+						EfSLS.add(number);
+						//F->LS: prob[2][1]
+						number.copyFrom(sectoro.getOutsideMatrixF().fetchProb(so, to,	tmp));
+						number.multiply(insidevalue1);
+						number.multiply(insidevalue2);
+						number.multiply(prob[2][1]);
+						//number.divide(topInsideS);
+						EfFLS.add(number);
+					}
+				}
+			}
+	*/
+			/*
+			 * //syang: the above commented region is for direct estimation of frequencies of
+			 * S->LS and F->LS (i.e. bifurcation). Since direct estimation is O(n^3) complexity,
+			 * so using Count(S->LS)=C(S)-C(S->L) and C(F->LS)=C(F)-C(F->dFd) to save the time.
+			 */
+			//This is to save O(n^3) execution time
+			EfSLS.copyFrom(EfS);
+			EfSLS.subtract(EfSL,tmp);
+			EfFLS.copyFrom(EfF);
+			EfFLS.subtract(EfFdFd,tmp);
+			
+			//syang: normalize counts into probs.
+			EfS.divide(topInsideS);
+			EfL.divide(topInsideS);
+			EfF.divide(topInsideS);
+			EfSLS.divide(topInsideS);
+			EfSL.divide(topInsideS);
+			EfLdFd.divide(topInsideS);
+			EfLs.divide(topInsideS);
+			EfFLS.divide(topInsideS);
+			EfFdFd.divide(topInsideS);
+			
+			PointRes entropySLS = new PointRes(EfSLS);
+			PointRes entropySL = new PointRes(EfSL);
+			PointRes entropyLdFd = new PointRes(EfLdFd);
+			PointRes entropyLs = new PointRes(EfLs);
+			PointRes entropyFdFd = new PointRes(EfFdFd);
+			PointRes entropyFLS = new PointRes(EfFLS);
+				
+			if(verbose){
+				System.out.println("Expected nonterminal freq S = " + EfS.toDouble() );
+				System.out.println("Expected nonterminal freq L = " + EfL.toDouble() );
+				System.out.println("Expected nonterminal freq F = " + EfF.toDouble() );
+					
+				System.out.println("Expected rule freq S->LS = " + EfSLS.toDouble() );
+				System.out.println("Expected rule freq S->L = " + EfSL.toDouble() );
+				System.out.println("Expected rule freq L->dFd = " + EfLdFd.toDouble() );
+				System.out.println("Expected rule freq L->s = " + EfLs.toDouble() );
+				System.out.println("Expected rule freq F->LS = " + EfFLS.toDouble() );
+				System.out.println("Expected rule freq F->dFd = " + EfFdFd.toDouble() );
+			}
+	
+			//EfSLS.divide(EfS);
+			EfSL.divide(EfS);
+			EfSLS.setToDouble(1-EfSL.toDouble());
+			EfLdFd.divide(EfL);
+			EfLs.divide(EfL);
+			EfFdFd.divide(EfF);
+			//EfFLS.divide(EfF);
+			EfFLS.setToDouble(1-EfFdFd.toDouble());
+			
+			
+			if(verbose){
+				System.out.println("Reestimation prob S->LS = " + EfSLS.toDouble() );
+				System.out.println("Reestimation prob S->L = " + EfSL.toDouble() );
+				System.out.println("Reestimation prob L->dFd = " + EfLdFd.toDouble() );
+				System.out.println("Reestimation prob L->s = " + EfLs.toDouble() );
+				System.out.println("Reestimation prob F->LS = " + EfFLS.toDouble() );
+				System.out.println("Reestimation prob F->dFd = " + EfFdFd.toDouble() );
+			}
+			
+	
+			//syang: compute difference between re-trained parameters VS. previous ones
+			double squaredDiff=2*(Math.pow(EfSLS.toDouble()-prob[0][0], 2)
+					+Math.pow(EfLdFd.toDouble()-prob[1][0], 2)
+					+Math.pow(EfFdFd.toDouble()-prob[2][0], 2));
+			
+			double EMcutoff=0.000001d;
+			int EMiterations=10;
+			
+			if(squaredDiff>EMcutoff){
+				prob[0][0]=EfSLS.toDouble();
+				prob[1][0]=EfLdFd.toDouble();
+				prob[2][0]=EfFdFd.toDouble();
+				prob[0][1]=1-prob[0][0];
+				prob[1][1]=1-prob[1][0];
+				prob[2][1]=1-prob[2][0];
+			}
+		
+			/*
+			System.out.println("CHECK: Sum of rules from nonterminals:");
+			System.out.println("S: " + (float)( EfSLS.toDouble() + EfSL.toDouble() ));
+			System.out.println("L: " + (float)( EfLdFd.toDouble() + EfLs.toDouble() ));
+			System.out.println("F: " + (float)( EfFdFd.toDouble() + EfFLS.toDouble() ));
+			*/
+				
+		
+
+//syang: START of commenting out entropy calculation		
+/*
+			entropySLS.multiply(new PointRes(log2(1/prob[0][0])));//.divide(LogTwo);
+			entropySL.multiply(new PointRes(log2(1/prob[0][1])));//.divide(LogTwo);
+			entropyLs.multiply(new PointRes(log2(1/prob[1][1])));//.divide(LogTwo);
+			entropyFLS.multiply(new PointRes(log2(1/prob[2][1])));//.divide(LogTwo);
+			entropyLdFd.multiply(new PointRes(log2(1/prob[1][0])));//.divide(LogTwo);
+			entropyFdFd.multiply(new PointRes(log2(1/prob[2][0])));//.divide(LogTwo);
+		
+			PointRes entropy = new PointRes(entropySLS);
+			entropy.add(entropySL);
+			entropy.add(entropyLdFd);
+			entropy.add(entropyLs);
+			entropy.add(entropyFLS);
+			entropy.add(entropyFdFd);
+			if(verbose){System.out.println("Rule entropy component: " + entropy);}
+	
+			PointRes logTopInsideS = new PointRes(topInsideS);
+			logTopInsideS.takeLog2();
+			//logTopInsideS.multiply(-1);
+			entropy.add(logTopInsideS);
+			if(verbose){System.out.println("Log top inside S component: " + logTopInsideS);}
+			//System.out.println("Log top inside S + rule entropy: " + entropy);
+			if(verbose){System.out.println("Likelihood entropy component: " + entropyLikelihood);}
+			entropy.add(entropyLikelihood);
+			
+			System.out.println("ENTROPY: " + entropy + " = " + entropy.toDouble());
+			
+			DecimalFormat df2 = new DecimalFormat( "#########0.00" );
+			double maxentropy_nr = 0.142- 1.5*Math.log(length)/Math.log(2) + 1.388*length;
+			double maxentropy = new Double(df2.format(maxentropy_nr)).doubleValue();
+			double percent_nr = (entropy.toDouble()/maxentropy_nr)*100;
+			double percent = new Double(df2.format(percent_nr)).doubleValue();
+			
+			System.out.println("(which is " + percent + "% of the maximum entropy, " + maxentropy + ")");
+*/
+//syang: END of commenting out entropy calculation		
+		
+		
+
+		}
+		
+		
+/*		//syang: directly output the top inside value after in-out
+		System.out.println("For syang, top inside S: "
+				+ topInsideS);
+*/
+
+		
+
+		// syang: 5. fill inside matrices again
+		if (verbose) {
+			System.out.println("Cleaning memory...");
+		}
+
+		// assign null's to all inside-outside to enforce clearing of memory in
+		// case it didn't happen
+		Sector thissec = master.bottom;
+		thissec.clearAllInside();
+		thissec.clearAllOutside();
+		while (thissec.next != null) {
+			thissec = thissec.next;
+			thissec.clearAllInside();
+			thissec.clearAllOutside();
+		}
+
+		if (verbose) {
+			System.out.println("Done. (time: "
+					+ (System.nanoTime() - starttime) * 1e-9 + " s)");
+			System.out.println("Memory allocated: "
+					+ (Runtime.getRuntime().totalMemory() / 1048576) + " MB");
+			System.out.println("Memory used: "
+					+ ((Runtime.getRuntime().totalMemory() - Runtime
+							.getRuntime().freeMemory()) / 1048576) + " MB ");
+		}	
+		
+		
+		//PointRes topInsideS = new PointRes(0,0);
 		topInsideS=master.top.getInsideMatrixS().getProb(
 				distance - 1, length - 1 - master.top.pos[1]);
 		
