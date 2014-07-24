@@ -1335,7 +1335,9 @@ public class FoldingProject {
 			
 		}while(squaredDiff>EMdifferenceCutoff);	//syang: NOTE there is one additional termination condition inside the loop by "break;" sentence
 		//syang: test the number of EM iterations
-		System.out.println("The number of EM iterations: "+EMiterations);
+		if(EM){
+			System.out.println("The number of EM iterations: "+EMiterations);
+		}
 		
 		act.setProgress(1.0);
 		return topInsideS;

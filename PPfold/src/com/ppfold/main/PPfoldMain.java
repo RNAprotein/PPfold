@@ -48,7 +48,7 @@ public class PPfoldMain implements Runnable {
 	
 	static boolean createtree = true;
 	static boolean optimizetree = true;
-	static boolean verbose = true; //false;	//syang: true;
+	static boolean verbose = false;	//true; //false;	//syang: true;
 	static boolean exportson = false; 
 	static boolean onlyCT = false;
 	static boolean specialname = false;
