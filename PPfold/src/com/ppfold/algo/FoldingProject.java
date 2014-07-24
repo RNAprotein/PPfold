@@ -173,13 +173,36 @@ public class FoldingProject {
 			}
 		}
 		
+
 		
+		
+		//syang: test the changes of param.getProb()		
+		/*System.out.println("For syang: test the changes of param.getProb()");		
+		double testParam[][]=param.getProb();
+		for(int i=0;i<testParam.length;i++){
+			for(int j=0;j<testParam[0].length;j++){
+				System.out.print(testParam[i][j]+"\t");
+			}
+			System.out.println();
+		}*/		
+		
+		boolean EM=true; //false;
 		// syang: the result of noConstraints topInsideS
 		System.out.println("Folding (noConstraints)...");
 		act.setCurrentActivity("Applying grammar");
 		PointRes topInsideS = FoldingProject.calcSCFG(act
 				.getChildProgress(scfgpart), scfgjobsnr, param.getProb(),
-				probmatrix0, probmatrix2, executor, verbose, diffbp, entropycalc);
+				probmatrix0, probmatrix2, executor, verbose, diffbp, entropycalc, EM);
+		
+		//syang: test the changes of param.getProb()
+		/*System.out.println("For syang: test the changes of param.getProb()");
+		testParam=param.getProb();
+		for(int i=0;i<testParam.length;i++){
+			for(int j=0;j<testParam[0].length;j++){
+				System.out.print(testParam[i][j]+"\t");
+			}
+			System.out.println();
+		}*/
 		
 		
 		if(extradata_list!=null){
@@ -276,13 +299,36 @@ public class FoldingProject {
 		System.out.println("Folding (Constraints)...");
 		act.setCurrentActivity("Applying grammar");
 		
+		
+		
+		//syang: test the changes of param.getProb()
+		/*System.out.println("For syang: test the changes of param.getProb()");
+		testParam=param.getProb();
+		for(int i=0;i<testParam.length;i++){
+			for(int j=0;j<testParam[0].length;j++){
+				System.out.print(testParam[i][j]+"\t");
+			}
+			System.out.println();
+		}*/
+		
+		EM=false;
 		// syang: the result of Constraint topInsideS
 		//syang: param is the initial scfg, rate matrix and so
 		//starttime = System.currentTimeMillis();
 		PointRes topInsideS_constraint = FoldingProject.calcSCFG(act
 				.getChildProgress(scfgpart), scfgjobsnr, param.getProb(),
-				probmatrix, probmatrix2, executor, verbose, diffbp, entropycalc);
+				probmatrix, probmatrix2, executor, verbose, diffbp, entropycalc, EM);
 		//System.out.println("Time in SCFG part: " + (System.currentTimeMillis()-starttime));
+				
+		//syang: test the changes of param.getProb()		
+		/*System.out.println("For syang: test the changes of param.getProb()");
+		testParam=param.getProb();
+		for(int i=0;i<testParam.length;i++){
+			for(int j=0;j<testParam[0].length;j++){
+				System.out.print(testParam[i][j]+"\t");
+			}
+			System.out.println();
+		}*/
 		
 		
 		
@@ -305,7 +351,7 @@ public class FoldingProject {
 
 	private static PointRes calcSCFG(Progress act, int userjobsnr,
 			double[][] prob, double[][] probmatrix, double[][] probmatrix2,
-			AsynchronousJobExecutor executor, final boolean verbose, final boolean diffbp, final boolean entropycalc)
+			AsynchronousJobExecutor executor, final boolean verbose, final boolean diffbp, final boolean entropycalc, final boolean EM)
 			throws InterruptedException {
 		PointRes tmp = new PointRes(0, 0);		//syang: first 0 is fraction, second 0 is exponent
 		final long starttime = System.nanoTime();
@@ -399,111 +445,123 @@ public class FoldingProject {
 				+ ", Extra points: " + extrapoints + ", Total points: "
 				+ totalpoints + ", " + "Fractional extra: " + fraction + "%");
 		}
-		if (verbose) {
-			System.out.println("Generating sectors: ");
-		}
-		act.setCurrentActivity("Applying grammar: generating sectors");
-
-		Sector top = SectorGenerator.GenerateSectors(nrsectors, distance,
-				nrdivisions, length,diffbp);
-
-		final Master master = new Master(top, prob);
-
-		// sector: set basepairs (phylogenetic probabilities) for inside sectors
-		PointRes number = new PointRes(0, 0);
-		for (int i = 0; i < length; i++) {
-			for (int j = 0; j < length - i; j++) {
-				Sector sectoro = findSector(i, j, master.bottom);	//syang: find which sector point(i,j) belongs to; Note the shape of the sector(Fig3 in paper)
-				int so = findPointST(i, j, sectoro, distance)[0];
-				int to = findPointST(i, j, sectoro, distance)[1];
-				number.setToDouble(probmatrix[i][i + j]);
-				sectoro.setBasePairs(so, to, number);
-			}
-		}
 		
-		if(diffbp&&probmatrix2!=null){
-			//if differentiating inner and outerbasepairs, create a new bp matrix per sector
+		
+		
+		//syang: add EM algorithm
+		double EMdifferenceCutoff=0.000001d;
+		double squaredDiff=0d;
+		int EMiterations=0;
+		int EMiterationsCutoff=30;
+		//boolean EM=true;
+		PointRes topInsideS = new PointRes(0,0);
+				
+		do{
+			if (verbose) {
+				System.out.println("Generating sectors: ");
+			}
+			act.setCurrentActivity("Applying grammar: generating sectors");
+	
+			Sector top = SectorGenerator.GenerateSectors(nrsectors, distance,
+					nrdivisions, length,diffbp);
+	
+			final Master master = new Master(top, prob);
+	
+			// sector: set basepairs (phylogenetic probabilities) for inside sectors
+			PointRes number = new PointRes(0, 0);
 			for (int i = 0; i < length; i++) {
 				for (int j = 0; j < length - i; j++) {
-					Sector sectoro = findSector(i, j, master.bottom);
+					Sector sectoro = findSector(i, j, master.bottom);	//syang: find which sector point(i,j) belongs to; Note the shape of the sector(Fig3 in paper)
 					int so = findPointST(i, j, sectoro, distance)[0];
 					int to = findPointST(i, j, sectoro, distance)[1];
-					number.setToDouble(probmatrix2[i][i + j]);
-					sectoro.setBasePairs2(so, to, number);
+					number.setToDouble(probmatrix[i][i + j]);
+					sectoro.setBasePairs(so, to, number);
 				}
 			}
-		}
-		
-		
-		
-		if (verbose) {
-			System.out.println("Done. (time: "
-					+ (System.nanoTime() - starttime) * 1e-9 + " s)");
-			System.out.println("Memory allocated: "
-					+ (Runtime.getRuntime().totalMemory() / 1048576) + " MB");
-			System.out.println("Memory used: "
-					+ ((Runtime.getRuntime().totalMemory() - Runtime
-							.getRuntime().freeMemory()) / 1048576) + " MB ");
-		}
-
-
-		
-		// syang: 1. fill inside matrices
-		act.setCurrentActivity("Applying grammar: inside algorithm");
-		
-		if (verbose) {
-			System.out.println("Calculating inside values... ");
-		}
-
-		final AtomicInteger finishedinsidejobscount = new AtomicInteger(0); // counts
-		// how many inside jobs are done
-		master.CreateInsideJobChannel();
-		Progress insideAct = act.getChildProgress(0.32);
-		//final long gridstarttime = System.nanoTime();
-		while (master.unProcessedInsideSectors()) {
-			if(act.shouldStop()){
-				executor.shutDown();
-			}
-			act.checkStop();
-			CYKJob cYKJob = master.takeNextInsideJob(); // This call will block
-			// until a job is ready
-			final Progress jobAct = insideAct.getChildProgress(1.0 / nrsectors);
-			// System.out.println(cYKJob.sectorid + " " + " 0 " +
-			// (System.nanoTime()-starttime));
-			final int sectorNumber = cYKJob.getSectorid();
-			executor.startExecution(cYKJob, new JobListener() {
-				public void jobFinished(JobResults result) {
-					master.setInsideResult(sectorNumber, result);
-					jobAct.setProgress(1.0);
-					// System.out.println(sectorNumber + " " + " 1 " +
-					// (System.nanoTime()-starttime));
-					finishedinsidejobscount.incrementAndGet();
+			
+			if(diffbp&&probmatrix2!=null){
+				//if differentiating inner and outerbasepairs, create a new bp matrix per sector
+				for (int i = 0; i < length; i++) {
+					for (int j = 0; j < length - i; j++) {
+						Sector sectoro = findSector(i, j, master.bottom);
+						int so = findPointST(i, j, sectoro, distance)[0];
+						int to = findPointST(i, j, sectoro, distance)[1];
+						number.setToDouble(probmatrix2[i][i + j]);
+						sectoro.setBasePairs2(so, to, number);
+					}
 				}
-
-				public void jobFinished(double[][] result) {
-				}// doesn't happen here
-
-				public void jobFinished(List<ResultBundle> result) {
-				} // doesn't happen here
-			});
-		}
-
-		// wait for last job to finish
-		while (finishedinsidejobscount.get() < nrsectors) {
-			Thread.sleep(100);
-			if(act.shouldStop()){	
-				executor.shutDown();
 			}
-			act.checkStop();
-		}
-
-		insideAct.setProgress(1.0);
-
-		if(verbose){
-			System.out.println("Top inside: "
-				+ master.top.getInsideMatrixS().getProb(distance - 1,
-						length - 1 - master.top.pos[1]));
-		}
+		
+		
+		
+			if (verbose) {
+				System.out.println("Done. (time: "
+						+ (System.nanoTime() - starttime) * 1e-9 + " s)");
+				System.out.println("Memory allocated: "
+						+ (Runtime.getRuntime().totalMemory() / 1048576) + " MB");
+				System.out.println("Memory used: "
+						+ ((Runtime.getRuntime().totalMemory() - Runtime
+								.getRuntime().freeMemory()) / 1048576) + " MB ");
+			}
+	
+	
+			
+			// syang: 1. fill inside matrices
+			act.setCurrentActivity("Applying grammar: inside algorithm");
+			
+			if (verbose) {
+				System.out.println("Calculating inside values... ");
+			}
+	
+			final AtomicInteger finishedinsidejobscount = new AtomicInteger(0); // counts
+			// how many inside jobs are done
+			master.CreateInsideJobChannel();
+			Progress insideAct = act.getChildProgress(0.32);
+			//final long gridstarttime = System.nanoTime();
+			while (master.unProcessedInsideSectors()) {
+				if(act.shouldStop()){
+					executor.shutDown();
+				}
+				act.checkStop();
+				CYKJob cYKJob = master.takeNextInsideJob(); // This call will block
+				// until a job is ready
+				final Progress jobAct = insideAct.getChildProgress(1.0 / nrsectors);
+				// System.out.println(cYKJob.sectorid + " " + " 0 " +
+				// (System.nanoTime()-starttime));
+				final int sectorNumber = cYKJob.getSectorid();
+				executor.startExecution(cYKJob, new JobListener() {
+					public void jobFinished(JobResults result) {
+						master.setInsideResult(sectorNumber, result);
+						jobAct.setProgress(1.0);
+						// System.out.println(sectorNumber + " " + " 1 " +
+						// (System.nanoTime()-starttime));
+						finishedinsidejobscount.incrementAndGet();
+					}
+	
+					public void jobFinished(double[][] result) {
+					}// doesn't happen here
+	
+					public void jobFinished(List<ResultBundle> result) {
+					} // doesn't happen here
+				});
+			}
+	
+			// wait for last job to finish
+			while (finishedinsidejobscount.get() < nrsectors) {
+				Thread.sleep(100);
+				if(act.shouldStop()){	
+					executor.shutDown();
+				}
+				act.checkStop();
+			}
+	
+			insideAct.setProgress(1.0);
+	
+			if(verbose){
+				System.out.println("Top inside: "
+					+ master.top.getInsideMatrixS().getProb(distance - 1,
+							length - 1 - master.top.pos[1]));
+			}
 		
 /*		//syang: test the change of prob[][]
 		System.out.println("for syang, test the change of prob");
@@ -600,118 +658,129 @@ public class FoldingProject {
 		//System.out.println("TOTAL TIME ELAPSED IN INSIDE PART (DISTRIBUTED): "
 		//		+ gridtime1 + " seconds ");
 
-		if (verbose) {
-			System.out.println("Done. (time: "
-					+ (System.nanoTime() - starttime) * 1e-9 + " s)");
-			System.out.println("Memory allocated: "
-					+ (Runtime.getRuntime().totalMemory() / 1048576) + " MB");
-			System.out.println("Memory used: "
-					+ ((Runtime.getRuntime().totalMemory() - Runtime
-							.getRuntime().freeMemory()) / 1048576) + " MB ");
-		}
-
-		
-
-		// syang: 2. fill outside matrices
-		act.setCurrentActivity("Applying grammar: outside algorithm");
-		
-		if (verbose) {
-			System.out.println("Calculating outside values...");
-		}
-		master.CreateOutsideJobChannel();
-		final AtomicInteger finishedoutsidejobscount = new AtomicInteger(0); // counts
-		// how many outside jobs are done
-
-		// outside algorithm
-		// set basepairs for outside algorithm (they are shifted relative to
-		// inside algo)
-		number.setToFloat(0);
-		for (int i = 0; i < length; i++) {
-			for (int j = 0; j < length - i; j++) {
-				Sector sectoro = findSector(i, j, master.bottom);
-				int so = findPointST(i, j, sectoro, distance)[0];
-				int to = findPointST(i, j, sectoro, distance)[1];
-				if (i > 0 && (j + i + 1) < length) {
-					number.setToDouble(probmatrix[i - 1][i + j + 1]);
-				} else if (i == 0) {
-					number.setToFloat(0);
-				} else if (j + i + 1 == length) {
-					number.setToFloat(0);
-				}
-				sectoro.setBasePairs(so, to, number);
+			if (verbose) {
+				System.out.println("Done. (time: "
+						+ (System.nanoTime() - starttime) * 1e-9 + " s)");
+				System.out.println("Memory allocated: "
+						+ (Runtime.getRuntime().totalMemory() / 1048576) + " MB");
+				System.out.println("Memory used: "
+						+ ((Runtime.getRuntime().totalMemory() - Runtime
+								.getRuntime().freeMemory()) / 1048576) + " MB ");
 			}
-		}
-		
-		if(diffbp){
+			
+			
+			//syang: get topInsideS first (either EM or not)
+			topInsideS=master.top.getInsideMatrixS().getProb(
+					distance - 1, length - 1 - master.top.pos[1]);
+			if(!EM){		
+				break;
+			}
+			//syang: set additional termination condition
+			if(EMiterations>=EMiterationsCutoff){
+				break;
+			}
+			EMiterations++;
+	
+			// syang: 2. fill outside matrices
+			act.setCurrentActivity("Applying grammar: outside algorithm");
+			
+			if (verbose) {
+				System.out.println("Calculating outside values...");
+			}
+			master.CreateOutsideJobChannel();
+			final AtomicInteger finishedoutsidejobscount = new AtomicInteger(0); // counts
+			// how many outside jobs are done
+	
+			// outside algorithm
+			// set basepairs for outside algorithm (they are shifted relative to
+			// inside algo)
+			number.setToFloat(0);
 			for (int i = 0; i < length; i++) {
 				for (int j = 0; j < length - i; j++) {
 					Sector sectoro = findSector(i, j, master.bottom);
 					int so = findPointST(i, j, sectoro, distance)[0];
 					int to = findPointST(i, j, sectoro, distance)[1];
 					if (i > 0 && (j + i + 1) < length) {
-						number.setToDouble(probmatrix2[i - 1][i + j + 1]);
+						number.setToDouble(probmatrix[i - 1][i + j + 1]);
 					} else if (i == 0) {
 						number.setToFloat(0);
 					} else if (j + i + 1 == length) {
 						number.setToFloat(0);
 					}
-					sectoro.setBasePairs2(so, to, number);
+					sectoro.setBasePairs(so, to, number);
 				}
 			}
-		}
-		
-		//final long outsidegridstarttime = System.nanoTime();
-		Progress outsideAct = act.getChildProgress(0.50);
-		while (master.unProcessedOutsideSectors()) {
-			if(act.shouldStop()){
-				executor.shutDown();
+			
+			if(diffbp){
+				for (int i = 0; i < length; i++) {
+					for (int j = 0; j < length - i; j++) {
+						Sector sectoro = findSector(i, j, master.bottom);
+						int so = findPointST(i, j, sectoro, distance)[0];
+						int to = findPointST(i, j, sectoro, distance)[1];
+						if (i > 0 && (j + i + 1) < length) {
+							number.setToDouble(probmatrix2[i - 1][i + j + 1]);
+						} else if (i == 0) {
+							number.setToFloat(0);
+						} else if (j + i + 1 == length) {
+							number.setToFloat(0);
+						}
+						sectoro.setBasePairs2(so, to, number);
+					}
+				}
 			}
-			act.checkStop();
-			final Progress jobAct = outsideAct
-					.getChildProgress(1.0 / nrsectors);
-			CYKJob cYKJob = master.takeNextOutsideJob(); // This call will block
-			// until a job is
-			// ready
-			final int sectorNumber = cYKJob.getSectorid();
-			executor.startExecution(cYKJob, new JobListener() {
-				// System.out.println(sectorNumber + " " + " 2 " +
-				// (System.nanoTime()-starttime));
-				public void jobFinished(List<ResultBundle> result) {
-				} // doesn't happen here
-
-				public void jobFinished(JobResults result) {
-					master.setOutsideResult(sectorNumber, result);
-					jobAct.setProgress(1.0);
-					// System.out.println(sectorNumber + " " + " 3 " +
+			
+			//final long outsidegridstarttime = System.nanoTime();
+			Progress outsideAct = act.getChildProgress(0.50);
+			while (master.unProcessedOutsideSectors()) {
+				if(act.shouldStop()){
+					executor.shutDown();
+				}
+				act.checkStop();
+				final Progress jobAct = outsideAct
+						.getChildProgress(1.0 / nrsectors);
+				CYKJob cYKJob = master.takeNextOutsideJob(); // This call will block
+				// until a job is
+				// ready
+				final int sectorNumber = cYKJob.getSectorid();
+				executor.startExecution(cYKJob, new JobListener() {
+					// System.out.println(sectorNumber + " " + " 2 " +
 					// (System.nanoTime()-starttime));
-					finishedoutsidejobscount.incrementAndGet();
-				}
-
-				public void jobFinished(double[][] result) {
-				}// doesn't happen here
-			});
-		}
-
-		// wait for last job to finish
-		while (finishedoutsidejobscount.get() < nrsectors) {
-			Thread.sleep(100);
-			if(act.shouldStop()){
-				executor.shutDown();
+					public void jobFinished(List<ResultBundle> result) {
+					} // doesn't happen here
+	
+					public void jobFinished(JobResults result) {
+						master.setOutsideResult(sectorNumber, result);
+						jobAct.setProgress(1.0);
+						// System.out.println(sectorNumber + " " + " 3 " +
+						// (System.nanoTime()-starttime));
+						finishedoutsidejobscount.incrementAndGet();
+					}
+	
+					public void jobFinished(double[][] result) {
+					}// doesn't happen here
+				});
 			}
-			act.checkStop();
-		}
-		outsideAct.setProgress(1.0);
-		
-				
-		if (verbose) {
-			System.out.println("Done. (time: "
-					+ (System.nanoTime() - starttime) * 1e-9 + " s)");
-			System.out.println("Memory allocated: "
-					+ (Runtime.getRuntime().totalMemory() / 1048576) + " MB");
-			System.out.println("Memory used: "
-					+ ((Runtime.getRuntime().totalMemory() - Runtime
-							.getRuntime().freeMemory()) / 1048576) + " MB ");
-		}
+	
+			// wait for last job to finish
+			while (finishedoutsidejobscount.get() < nrsectors) {
+				Thread.sleep(100);
+				if(act.shouldStop()){
+					executor.shutDown();
+				}
+				act.checkStop();
+			}
+			outsideAct.setProgress(1.0);
+			
+					
+			if (verbose) {
+				System.out.println("Done. (time: "
+						+ (System.nanoTime() - starttime) * 1e-9 + " s)");
+				System.out.println("Memory allocated: "
+						+ (Runtime.getRuntime().totalMemory() / 1048576) + " MB");
+				System.out.println("Memory used: "
+						+ ((Runtime.getRuntime().totalMemory() - Runtime
+								.getRuntime().freeMemory()) / 1048576) + " MB ");
+			}
 
 		
 		
@@ -854,173 +923,174 @@ public class FoldingProject {
 		
 				
 
-		// syang: 3. set basepair and single base matrices
-		if (verbose) {
-			System.out.println("Setting basepairs...");
-		}
-
-		act.setCurrentActivity("Applying grammar: setting basepairs");
-
-		number.setToFloat(0);
-		PointRes number2 = new PointRes(0, 0);
-
-		//Expected rule frequencies
-		PointRes EfLdFd = new PointRes(0,0);
-		PointRes EfFdFd = new PointRes(0,0);
-		
-		PointRes topInsideS = new PointRes(0,0);
-		topInsideS.copyFrom(master.top.getInsideMatrixS().fetchProb(
-				distance - 1, length - 1 - master.top.pos[1], tmp));		
-		
-		PointRes entropyLikelihood = new PointRes(0,0); 
-		
-		//MatrixTools.print(probmatrix);
-		// calculate basepair probabilities & basepair rule entropies
-		for (int i = 0; i < length; i++) {
-			for (int j = 1; j < length - i; j++) {
-				Sector sectoro = findSector(i, j, master.bottom);
-				Sector sectori = findSector(i + 1, j - 2, master.bottom);
-				int so = findPointST(i, j, sectoro, distance)[0];
-				int to = findPointST(i, j, sectoro, distance)[1];
-				int si = findPointST(i + 1, j - 2, sectori, distance)[0];
-				int ti = findPointST(i + 1, j - 2, sectori, distance)[1];
-				
-				//L->dFd
-				number.copyFrom(sectoro.getOutsideMatrixL().fetchProb(so, to,
-						tmp));
-				number.multiply(sectori.getInsideMatrixF().fetchProb(si, ti,
-						tmp), prob[1][0]);
-				if(diffbp){
-					number.multiply(probmatrix2[i][i+j]);
-				}else{
-					number.multiply(probmatrix[i][i+j]);
-				}
-				EfLdFd.add(number);
-				number.divide(topInsideS);
-				
-				//F->dFd
-				number2.copyFrom(sectoro.getOutsideMatrixF().fetchProb(so, to,
-						tmp));
-				number2.multiply(sectori.getInsideMatrixF().fetchProb(si, ti,
-						tmp), prob[2][0]);
-				number2.multiply(probmatrix[i][i+j]);
-				EfFdFd.add(number2);
-				number2.divide(topInsideS);
-				
-				//Sum of expectation of the two rules is expectation of basepairing rule
-				number.add(number2);
-				
-				sectoro.setBasePairs(so, to, number);
-				if(number.toFloat()>1){
-					if(verbose){
-						System.err.println("Warning: Pd(" + i + ", " + j +
-							") = " + number + " > 1! (Using 1...)" );
-					}
-					number.setToFloat(1);
-				}
-				if(probmatrix[i][i+j]!=0){	//syang: for entropy
-					number.multiply(log2(1/probmatrix[i][i+j]));
-					//System.out.println(i + ", " + (i+j) + " pair entropy: " + number);
-					entropyLikelihood.add(number);
-				}
-				
-				//System.out.print(number.toFloat() + " ");
-				//System.out.format("%16.8e", number.toDouble());
+			// syang: 3. set basepair and single base matrices
+			if (verbose) {
+				System.out.println("Setting basepairs...");
 			}
-		}
-		
 	
-		if (verbose) { 
-			System.out.println("Done. (time: "
-					+ (System.nanoTime() - starttime) * 1e-9 + " s)");
-			System.out.println("Memory allocated: "
-					+ (Runtime.getRuntime().totalMemory() / 1048576) + " MB");
-			System.out.println("Memory used: "
-					+ ((Runtime.getRuntime().totalMemory() - Runtime
-							.getRuntime().freeMemory()) / 1048576) + " MB ");
-		}
+			act.setCurrentActivity("Applying grammar: setting basepairs");
+	
+			number.setToFloat(0);
+			PointRes number2 = new PointRes(0, 0);
+	
+			//Expected rule frequencies
+			PointRes EfLdFd = new PointRes(0,0);
+			PointRes EfFdFd = new PointRes(0,0);
+			
+			//syang: comment out original PPfold codes: 
+			/*PointRes topInsideS = new PointRes(0,0);
+			topInsideS.copyFrom(master.top.getInsideMatrixS().fetchProb(
+					distance - 1, length - 1 - master.top.pos[1], tmp));*/		
+			
+			PointRes entropyLikelihood = new PointRes(0,0); 
+			
+			//MatrixTools.print(probmatrix);
+			// calculate basepair probabilities & basepair rule entropies
+			for (int i = 0; i < length; i++) {
+				for (int j = 1; j < length - i; j++) {
+					Sector sectoro = findSector(i, j, master.bottom);
+					Sector sectori = findSector(i + 1, j - 2, master.bottom);
+					int so = findPointST(i, j, sectoro, distance)[0];
+					int to = findPointST(i, j, sectoro, distance)[1];
+					int si = findPointST(i + 1, j - 2, sectori, distance)[0];
+					int ti = findPointST(i + 1, j - 2, sectori, distance)[1];
+					
+					//L->dFd
+					number.copyFrom(sectoro.getOutsideMatrixL().fetchProb(so, to,
+							tmp));
+					number.multiply(sectori.getInsideMatrixF().fetchProb(si, ti,
+							tmp), prob[1][0]);
+					if(diffbp){
+						number.multiply(probmatrix2[i][i+j]);
+					}else{
+						number.multiply(probmatrix[i][i+j]);
+					}
+					EfLdFd.add(number);
+					number.divide(topInsideS);
+					
+					//F->dFd
+					number2.copyFrom(sectoro.getOutsideMatrixF().fetchProb(so, to,
+							tmp));
+					number2.multiply(sectori.getInsideMatrixF().fetchProb(si, ti,
+							tmp), prob[2][0]);
+					number2.multiply(probmatrix[i][i+j]);
+					EfFdFd.add(number2);
+					number2.divide(topInsideS);
+					
+					//Sum of expectation of the two rules is expectation of basepairing rule
+					number.add(number2);
+					
+					sectoro.setBasePairs(so, to, number);
+					if(number.toFloat()>1){
+						if(verbose){
+							System.err.println("Warning: Pd(" + i + ", " + j +
+								") = " + number + " > 1! (Using 1...)" );
+						}
+						number.setToFloat(1);
+					}
+					if(probmatrix[i][i+j]!=0){	//syang: for entropy
+						number.multiply(log2(1/probmatrix[i][i+j]));
+						//System.out.println(i + ", " + (i+j) + " pair entropy: " + number);
+						entropyLikelihood.add(number);
+					}
+					
+					//System.out.print(number.toFloat() + " ");
+					//System.out.format("%16.8e", number.toDouble());
+				}
+			}
+			
 		
-
-		
-
-		if (verbose) {
-			System.out.println("Calculating single base probabilities...");
-		}
-
-		// calculate single basepairing
-		final PointRes one = new PointRes(1);
-		final PointRes minusone = new PointRes(-1);
-		final PointRes zero = new PointRes(0);
-
-		for (int i = 0; i < length; i++) {
-			PointRes singlebaseprobpoint = new PointRes(0);
-			for (int k = 1; k < length - i; k++) { // pairs to the right
-				Sector basepairsector = findSector(i, k, master.bottom);
-				int[] basepairpoint = findPointST(i, k, basepairsector,
-						distance);
-				singlebaseprobpoint.add(basepairsector.getMatrixBpVal(
-						basepairpoint[0], basepairpoint[1], tmp));
+			if (verbose) { 
+				System.out.println("Done. (time: "
+						+ (System.nanoTime() - starttime) * 1e-9 + " s)");
+				System.out.println("Memory allocated: "
+						+ (Runtime.getRuntime().totalMemory() / 1048576) + " MB");
+				System.out.println("Memory used: "
+						+ ((Runtime.getRuntime().totalMemory() - Runtime
+								.getRuntime().freeMemory()) / 1048576) + " MB ");
+			}
+			
+	
+			
+	
+			if (verbose) {
+				System.out.println("Calculating single base probabilities...");
+			}
+	
+			// calculate single basepairing
+			final PointRes one = new PointRes(1);
+			final PointRes minusone = new PointRes(-1);
+			final PointRes zero = new PointRes(0);
+	
+			for (int i = 0; i < length; i++) {
+				PointRes singlebaseprobpoint = new PointRes(0);
+				for (int k = 1; k < length - i; k++) { // pairs to the right
+					Sector basepairsector = findSector(i, k, master.bottom);
+					int[] basepairpoint = findPointST(i, k, basepairsector,
+							distance);
+					singlebaseprobpoint.add(basepairsector.getMatrixBpVal(
+							basepairpoint[0], basepairpoint[1], tmp));
+				}
+	
+				for (int k = 0; k < i; k++) { // pairs to the left
+					Sector basepairsector = findSector(k, i - k, master.bottom);
+					int[] basepairpoint = findPointST(k, i - k, basepairsector,
+							distance);
+					singlebaseprobpoint.add(basepairsector.getMatrixBpVal(
+							basepairpoint[0], basepairpoint[1], tmp));
+				}
+	
+				tmp.copyFrom(minusone);
+				singlebaseprobpoint.multiply(tmp);
+				tmp.copyFrom(one);
+				tmp.add(singlebaseprobpoint);
+				singlebaseprobpoint.copyFrom(tmp);
+	
+				if (singlebaseprobpoint.isSignificantlyLessThanZero()) {
+					System.err.println("Illegal Ps(" + i + ") = "
+							+ singlebaseprobpoint
+							+ ": (significantly less than zero); using 0");
+					singlebaseprobpoint.setToFloat(0);
+				}
+	
+				Sector sec = findSector(i, 0, master.bottom);
+				int[] sbasepoint = findPointST(i, 0, sec, distance);
+				sec.setBasePairs(sbasepoint[0], sbasepoint[1], singlebaseprobpoint);
+				if(probmatrix[i][i]!=0){	//syang: for entropy
+					singlebaseprobpoint.multiply(log2(1/probmatrix[i][i]));
+					entropyLikelihood.add(singlebaseprobpoint);
+				}
+				//System.out.format("%16.8e", singlebaseprobpoint.toDouble());
+			}
+	
+			if (verbose) {
+				System.out.println("Done. (time: "
+						+ (System.nanoTime() - starttime) * 1e-9 + " s)");
+				System.out.println("Memory allocated: "
+						+ (Runtime.getRuntime().totalMemory() / 1048576) + " MB");
+				System.out.println("Memory used: "
+						+ ((Runtime.getRuntime().totalMemory() - Runtime
+								.getRuntime().freeMemory()) / 1048576) + " MB ");
 			}
 
-			for (int k = 0; k < i; k++) { // pairs to the left
-				Sector basepairsector = findSector(k, i - k, master.bottom);
-				int[] basepairpoint = findPointST(k, i - k, basepairsector,
-						distance);
-				singlebaseprobpoint.add(basepairsector.getMatrixBpVal(
-						basepairpoint[0], basepairpoint[1], tmp));
-			}
-
-			tmp.copyFrom(minusone);
-			singlebaseprobpoint.multiply(tmp);
-			tmp.copyFrom(one);
-			tmp.add(singlebaseprobpoint);
-			singlebaseprobpoint.copyFrom(tmp);
-
-			if (singlebaseprobpoint.isSignificantlyLessThanZero()) {
-				System.err.println("Illegal Ps(" + i + ") = "
-						+ singlebaseprobpoint
-						+ ": (significantly less than zero); using 0");
-				singlebaseprobpoint.setToFloat(0);
-			}
-
-			Sector sec = findSector(i, 0, master.bottom);
-			int[] sbasepoint = findPointST(i, 0, sec, distance);
-			sec.setBasePairs(sbasepoint[0], sbasepoint[1], singlebaseprobpoint);
-			if(probmatrix[i][i]!=0){	//syang: for entropy
-				singlebaseprobpoint.multiply(log2(1/probmatrix[i][i]));
-				entropyLikelihood.add(singlebaseprobpoint);
-			}
-			//System.out.format("%16.8e", singlebaseprobpoint.toDouble());
-		}
-
-		if (verbose) {
-			System.out.println("Done. (time: "
-					+ (System.nanoTime() - starttime) * 1e-9 + " s)");
-			System.out.println("Memory allocated: "
-					+ (Runtime.getRuntime().totalMemory() / 1048576) + " MB");
-			System.out.println("Memory used: "
-					+ ((Runtime.getRuntime().totalMemory() - Runtime
-							.getRuntime().freeMemory()) / 1048576) + " MB ");
-		}
-
 
 		
 
-		// syang: 4. EM retrain SCFG rule probabilities
-		//Expected rule frequencies
-		PointRes EfSL = new PointRes(0,0);
-		PointRes EfSLS = new PointRes(0,0);
-		PointRes EfLs = new PointRes(0,0);
-		PointRes EfFLS = new PointRes(0,0);
-		//Expected nonterminal frequencies (for probability reestimation)
-		PointRes EfS = new PointRes(0,0);
-		PointRes EfL = new PointRes(0,0);
-		PointRes EfF = new PointRes(0,0);
-		
-		PointRes insideval = new PointRes(0,0);
-		PointRes outsideval = new PointRes(0,0);
-
-		if(entropycalc){			//syang: information entropy
+			// syang: 4. EM retrain SCFG rule probabilities
+			//Expected rule frequencies
+			PointRes EfSL = new PointRes(0,0);
+			PointRes EfSLS = new PointRes(0,0);
+			PointRes EfLs = new PointRes(0,0);
+			PointRes EfFLS = new PointRes(0,0);
+			//Expected nonterminal frequencies (for probability reestimation)
+			PointRes EfS = new PointRes(0,0);
+			PointRes EfL = new PointRes(0,0);
+			PointRes EfF = new PointRes(0,0);
+			
+			PointRes insideval = new PointRes(0,0);
+			PointRes outsideval = new PointRes(0,0);
+	
+			//syang: comment out original PPfold codes: if(entropycalc){			//syang: information entropy
 			for (int i = 0; i < length; i++) {
 				//Entropy for L->s
 				Sector sector = findSector(i,0, master.bottom);
@@ -1164,14 +1234,11 @@ public class FoldingProject {
 			
 	
 			//syang: compute difference between re-trained parameters VS. previous ones
-			double squaredDiff=2*(Math.pow(EfSLS.toDouble()-prob[0][0], 2)
+			squaredDiff=2*(Math.pow(EfSLS.toDouble()-prob[0][0], 2)
 					+Math.pow(EfLdFd.toDouble()-prob[1][0], 2)
 					+Math.pow(EfFdFd.toDouble()-prob[2][0], 2));
-			
-			double EMcutoff=0.000001d;
-			int EMiterations=10;
-			
-			if(squaredDiff>EMcutoff){
+						
+			if(squaredDiff>EMdifferenceCutoff){
 				prob[0][0]=EfSLS.toDouble();
 				prob[1][0]=EfLdFd.toDouble();
 				prob[2][0]=EfFdFd.toDouble();
@@ -1229,7 +1296,7 @@ public class FoldingProject {
 		
 		
 
-		}
+		//syang: comment out original PPfold codes:	} // this right bracket is corresponds to the left one in: if(entropycalc){
 		
 		
 /*		//syang: directly output the top inside value after in-out
@@ -1239,8 +1306,8 @@ public class FoldingProject {
 
 		
 
-		// syang: 5. fill inside matrices again
-		if (verbose) {
+		// syang: 5. clean memory
+		/*if (verbose) {
 			System.out.println("Cleaning memory...");
 		}
 
@@ -1264,11 +1331,11 @@ public class FoldingProject {
 					+ ((Runtime.getRuntime().totalMemory() - Runtime
 							.getRuntime().freeMemory()) / 1048576) + " MB ");
 		}	
-		
-		
-		//PointRes topInsideS = new PointRes(0,0);
-		topInsideS=master.top.getInsideMatrixS().getProb(
-				distance - 1, length - 1 - master.top.pos[1]);
+		*/
+			
+		}while(squaredDiff>EMdifferenceCutoff);	//syang: NOTE there is one additional termination condition inside the loop by "break;" sentence
+		//syang: test the number of EM iterations
+		System.out.println("The number of EM iterations: "+EMiterations);
 		
 		act.setProgress(1.0);
 		return topInsideS;
