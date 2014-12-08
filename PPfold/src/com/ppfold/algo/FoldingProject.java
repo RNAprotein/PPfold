@@ -449,10 +449,10 @@ public class FoldingProject {
 		
 		
 		//syang: add EM algorithm
-		double EMdifferenceCutoff=0.000001d;
+		double EMdifferenceCutoff=0.00000001d;//0.000001d;
 		double squaredDiff=0d;
 		int EMiterations=0;
-		int EMiterationsCutoff=30;
+		int EMiterationsCutoff=50;
 		//boolean EM=true;
 		PointRes topInsideS = new PointRes(0,0);
 				

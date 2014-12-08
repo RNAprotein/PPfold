@@ -59,6 +59,7 @@ public class NeighbourJoining {
 				if(d[i][j] > 10){
 					//If the optimum is very large, assume it's infinity and set to 10.
 					//(Someone will someday hate me for this comment - sorry ;))
+					//syang: if the pairwise distance of sequences is greater than 10, set it to 10! the max is 10 (problematic?)
 					d[i][j] = d[j][i] = 10;
 				}
 			}
